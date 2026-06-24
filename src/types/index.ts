@@ -9,6 +9,8 @@ export interface Hub {
   city: string;
   country: string;
   timezone: string;
+  lat?: number;
+  lon?: number;
   terminals: Terminal[];
 }
 
