@@ -18,9 +18,10 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 
 export default function Fleet() {
   const { aircraft, aircraftTypes, hubs, routes, addAircraft, updateAircraft, deleteAircraft, assignAircraftToHub } = useStore();
-  const [modal, setModal] = useState<null | 'add' | 'edit' | 'assign'>(null);
+  const [modal, setModal] = useState<null | 'add' | 'edit' | 'assign' | 'bulk'>(null);
   const [editing, setEditing] = useState<Aircraft | null>(null);
   const [form, setForm] = useState<AcForm>(emptyAc());
+  const [bulkForm, setBulkForm] = useState<BulkForm>(emptyBulk());
   const [assignHubId, setAssignHubId] = useState('');
   const [filterHub, setFilterHub] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
