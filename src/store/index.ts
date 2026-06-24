@@ -144,6 +144,20 @@ export const useStore = create<State>()(
           ),
         })),
 
+      ensureDefaultTerminal: (hubId) => {
+        const hub = useStore.getState().hubs.find((h) => h.id === hubId);
+        if (hub?.terminals.length) return hub.terminals[0].id;
+        const termId = uuid();
+        set((s) => ({
+          hubs: s.hubs.map((h) =>
+            h.id === hubId
+              ? { ...h, terminals: [{ id: termId, hubId, name: 'Gates', gates: [] }] }
+              : h
+          ),
+        }));
+        return termId;
+      },
+
       updateTerminal: (hubId, terminalId, name) =>
         set((s) => ({
           hubs: s.hubs.map((h) =>
