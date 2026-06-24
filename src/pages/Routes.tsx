@@ -209,6 +209,7 @@ export default function Routes() {
       timezone: 'UTC',
       lat: a.lat,
       lon: a.lon,
+      isRouteAirport: true,
     });
     // addHub is synchronous in Zustand — re-read
     return useStore.getState().hubs.find(
