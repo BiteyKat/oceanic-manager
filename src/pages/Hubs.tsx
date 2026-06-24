@@ -73,7 +73,7 @@ export default function Hubs() {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {hubs.map((hub) => {
+        {hubs.filter((h) => !h.isRouteAirport).map((hub) => {
           const isExpanded = expandedHub === hub.id;
           const totalGates = hub.terminals.flatMap((t) => t.gates).length;
           const assignedGates = hub.terminals.flatMap((t) => t.gates.filter((g) => g.routeId)).length;
