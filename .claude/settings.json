@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/oceanic-manager && git diff --quiet && git diff --staged --quiet || (git add -A && git commit -m \"Auto-commit: $(git diff --staged --name-only | head -3 | tr '\\n' ' ' | sed 's/ $//')\")",
+            "timeout": 30,
+            "statusMessage": "Committing changes..."
+          }
+        ]
+      }
+    ]
+  }
+}
