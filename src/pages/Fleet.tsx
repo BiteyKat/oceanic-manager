@@ -84,7 +84,10 @@ export default function Fleet() {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0' }}>Fleet</h1>
           <p style={{ color: '#64748b', marginTop: 4 }}>Manage aircraft and hub assignments</p>
         </div>
-        <Btn onClick={openAdd}>+ Add Aircraft</Btn>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn variant="ghost" onClick={openBulk}>+ Bulk Add</Btn>
+          <Btn onClick={openAdd}>+ Add Aircraft</Btn>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
