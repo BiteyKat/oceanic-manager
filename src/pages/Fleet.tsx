@@ -7,6 +7,9 @@ import { FormField, FormRow, Input, Select, Btn } from '../components/FormField'
 type AcForm = Omit<Aircraft, 'id'>;
 const emptyAc = (): AcForm => ({ registration: '', typeId: '', name: '', hubId: undefined, routeId: undefined, status: 'available' });
 
+type BulkForm = { typeId: string; hubId: string; status: Aircraft['status']; registrations: string };
+const emptyBulk = (): BulkForm => ({ typeId: '', hubId: '', status: 'available', registrations: '' });
+
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   available: { bg: '#14532d', color: '#4ade80' },
   assigned: { bg: '#1e3a5f', color: '#60a5fa' },
