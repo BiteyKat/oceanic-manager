@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store';
 import type { Route, Flight, RouteStatus } from '../types';
+import type { AirportRecord } from '../data/airports';
+import { findAirport, searchAirports } from '../data/airports';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn } from '../components/FormField';
 
@@ -26,12 +28,113 @@ const STATUS_COLORS: Record<RouteStatus, { bg: string; color: string }> = {
   suspended: { bg: '#3b1515', color: '#f87171' },
 };
 
+function AirportInput({
+  label, value, airport, onSelect, onClear, hubBadge,
+}: {
+  label: string;
+  value: string;
+  airport: AirportRecord | null;
+  onSelect: (a: AirportRecord) => void;
+  onClear: () => void;
+  hubBadge?: boolean;
+}) {
+  const [query, setQuery] = useState(value);
+  const [suggestions, setSuggestions] = useState<AirportRecord[]>([]);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync if parent clears
+  useEffect(() => {
+    if (!value) { setQuery(''); setSuggestions([]); setOpen(false); }
+    else if (value !== query) setQuery(value);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleChange = (v: string) => {
+    setQuery(v);
+    if (!v) { onClear(); setSuggestions([]); setOpen(false); return; }
+    const s = searchAirports(v, 8);
+    setSuggestions(s);
+    setOpen(s.length > 0);
+    // If exact match, resolve immediately
+    const exact = findAirport(v);
+    if (exact) onSelect(exact);
+    else onClear();
+  };
+
+  const pick = (a: AirportRecord) => {
+    setQuery(a.iata);
+    setOpen(false);
+    setSuggestions([]);
+    onSelect(a);
+  };
+
+  return (
+    <FormField label={label} required>
+      <div ref={containerRef} style={{ position: 'relative' }}>
+        <Input
+          placeholder="IATA or ICAO code, city…"
+          value={query}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={() => { if (suggestions.length) setOpen(true); }}
+          autoComplete="off"
+        />
+        {open && (
+          <div style={{
+            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+            background: '#1e293b', border: '1px solid #334155', borderRadius: 6, marginTop: 2,
+            maxHeight: 240, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          }}>
+            {suggestions.map((a) => (
+              <div
+                key={a.iata}
+                onMouseDown={(e) => { e.preventDefault(); pick(a); }}
+                style={{
+                  padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                  borderBottom: '1px solid #0f172a',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#0f172a')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <span style={{ fontWeight: 700, fontSize: 13, color: '#38bdf8', minWidth: 34 }}>{a.iata}</span>
+                <span style={{ fontSize: 12, color: '#64748b', minWidth: 40 }}>{a.icao}</span>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</div>
+                  <div style={{ fontSize: 11, color: '#64748b' }}>{a.city}, {a.country}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {airport && (
+        <div style={{ fontSize: 12, marginTop: 4, color: '#4ade80', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span>✓ {airport.name}</span>
+          {hubBadge && <span style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 4, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>Hub</span>}
+        </div>
+      )}
+      {query && !airport && (
+        <div style={{ fontSize: 12, marginTop: 4, color: '#f87171' }}>No matching airport</div>
+      )}
+    </FormField>
+  );
+}
+
 export default function Routes() {
   const {
     routes, hubs, aircraft, aircraftTypes,
     addRoute, updateRoute, deleteRoute,
     addFlight, updateFlight, deleteFlight,
     assignAircraftToFlight, assignGatesToFlight,
+    addHub,
   } = useStore();
 
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
@@ -40,52 +143,113 @@ export default function Routes() {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeForm, setRouteForm] = useState<RouteForm>(emptyRoute());
   const [flightForm, setFlightForm] = useState<FlightForm>(emptyFlight());
+  const [originAirport, setOriginAirport] = useState<AirportRecord | null>(null);
+  const [destAirport, setDestAirport] = useState<AirportRecord | null>(null);
   const [originCode, setOriginCode] = useState('');
   const [destCode, setDestCode] = useState('');
   const [distAutoCalc, setDistAutoCalc] = useState(false);
 
-  const findHub = (code: string) => {
-    const u = code.trim().toUpperCase();
-    return hubs.find((h) => h.icao.toUpperCase() === u || h.iata.toUpperCase() === u);
-  };
+  // Find or resolve hub for an airport record
+  const resolveHub = (a: AirportRecord) =>
+    hubs.find((h) => h.iata.toUpperCase() === a.iata.toUpperCase() || h.icao.toUpperCase() === a.icao.toUpperCase());
 
-  const calcDist = (h1: typeof hubs[0] | undefined, h2: typeof hubs[0] | undefined) => {
-    if (h1?.lat != null && h1?.lon != null && h2?.lat != null && h2?.lon != null)
-      return haversineKm(h1.lat, h1.lon, h2.lat, h2.lon);
+  const calcDist = (a: AirportRecord | null, b: AirportRecord | null) => {
+    if (a && b) return haversineKm(a.lat, a.lon, b.lat, b.lon);
     return undefined;
   };
 
-  const handleOriginCode = (val: string) => {
-    setOriginCode(val);
-    const originHub = findHub(val);
-    const destHub = hubs.find((h) => h.id === routeForm.destinationHubId);
-    const dist = calcDist(originHub, destHub);
-    setDistAutoCalc(dist !== undefined);
-    setRouteForm((p) => ({ ...p, originHubId: originHub?.id ?? '', ...(dist !== undefined ? { distanceKm: dist } : {}) }));
+  const handleSelectOrigin = (a: AirportRecord) => {
+    setOriginAirport(a);
+    setOriginCode(a.iata);
+    const hub = resolveHub(a);
+    const dist = calcDist(a, destAirport);
+    if (dist !== undefined) setDistAutoCalc(true);
+    setRouteForm((p) => ({
+      ...p,
+      originHubId: hub?.id ?? '__pending__',
+      ...(dist !== undefined ? { distanceKm: dist } : {}),
+    }));
   };
-  const handleDestCode = (val: string) => {
-    setDestCode(val);
-    const originHub = hubs.find((h) => h.id === routeForm.originHubId);
-    const destHub = findHub(val);
-    const dist = calcDist(originHub, destHub);
-    setDistAutoCalc(dist !== undefined);
-    setRouteForm((p) => ({ ...p, destinationHubId: destHub?.id ?? '', ...(dist !== undefined ? { distanceKm: dist } : {}) }));
+
+  const handleSelectDest = (a: AirportRecord) => {
+    setDestAirport(a);
+    setDestCode(a.iata);
+    const hub = resolveHub(a);
+    const dist = calcDist(originAirport, a);
+    if (dist !== undefined) setDistAutoCalc(true);
+    setRouteForm((p) => ({
+      ...p,
+      destinationHubId: hub?.id ?? '__pending__',
+      ...(dist !== undefined ? { distanceKm: dist } : {}),
+    }));
+  };
+
+  const clearOrigin = () => {
+    setOriginAirport(null); setOriginCode('');
+    setRouteForm((p) => ({ ...p, originHubId: '' }));
+    setDistAutoCalc(false);
+  };
+  const clearDest = () => {
+    setDestAirport(null); setDestCode('');
+    setRouteForm((p) => ({ ...p, destinationHubId: '' }));
+    setDistAutoCalc(false);
+  };
+
+  // Ensure hub exists for an airport, creating one if needed; returns hub id
+  const ensureHub = (a: AirportRecord): string => {
+    const existing = resolveHub(a);
+    if (existing) return existing.id;
+    // Create minimal hub from airport data
+    addHub({
+      name: a.name,
+      iata: a.iata,
+      icao: a.icao,
+      city: a.city,
+      country: a.country,
+      timezone: 'UTC',
+      lat: a.lat,
+      lon: a.lon,
+    });
+    // addHub is synchronous in Zustand — re-read
+    return useStore.getState().hubs.find(
+      (h) => h.iata.toUpperCase() === a.iata.toUpperCase()
+    )!.id;
   };
 
   const openAddRoute = () => {
-    setRouteForm(emptyRoute()); setOriginCode(''); setDestCode(''); setDistAutoCalc(false);
+    setRouteForm(emptyRoute()); setOriginAirport(null); setDestAirport(null);
+    setOriginCode(''); setDestCode(''); setDistAutoCalc(false);
     setEditingRoute(null); setRouteModal('add');
   };
+
   const openEditRoute = (r: Route) => {
     setEditingRoute(r);
-    const orig = hubs.find((h) => h.id === r.originHubId);
-    const dst = hubs.find((h) => h.id === r.destinationHubId);
-    setOriginCode(orig?.icao ?? orig?.iata ?? '');
-    setDestCode(dst?.icao ?? dst?.iata ?? '');
-    const dist = calcDist(orig, dst);
+    const origHub = hubs.find((h) => h.id === r.originHubId);
+    const dstHub = hubs.find((h) => h.id === r.destinationHubId);
+    const origAirport = origHub ? findAirport(origHub.iata) ?? findAirport(origHub.icao) ?? null : null;
+    const dstAirport = dstHub ? findAirport(dstHub.iata) ?? findAirport(dstHub.icao) ?? null : null;
+    const dist = calcDist(origAirport, dstAirport);
+    setOriginAirport(origAirport);
+    setDestAirport(dstAirport);
+    setOriginCode(origHub?.iata ?? origHub?.icao ?? '');
+    setDestCode(dstHub?.iata ?? dstHub?.icao ?? '');
     setDistAutoCalc(dist !== undefined);
-    setRouteForm({ originHubId: r.originHubId, destinationHubId: r.destinationHubId, distanceKm: dist ?? r.distanceKm });
+    setRouteForm({
+      originHubId: r.originHubId,
+      destinationHubId: r.destinationHubId,
+      distanceKm: dist ?? r.distanceKm,
+    });
     setRouteModal('edit');
+  };
+
+  const saveRoute = () => {
+    if (!originAirport || !destAirport) return;
+    const originHubId = ensureHub(originAirport);
+    const destinationHubId = ensureHub(destAirport);
+    const form = { ...routeForm, originHubId, destinationHubId };
+    if (routeModal === 'add') addRoute(form);
+    else if (editingRoute) updateRoute(editingRoute.id, form);
+    setRouteModal(null);
   };
 
   const openAddFlight = (routeId: string) => { setFlightModal({ routeId }); setFlightForm(emptyFlight()); };
@@ -99,13 +263,6 @@ export default function Routes() {
       departureGateId: flight.departureGateId,
       arrivalGateId: flight.arrivalGateId,
     });
-  };
-
-  const saveRoute = () => {
-    if (!routeForm.originHubId || !routeForm.destinationHubId) return;
-    if (routeModal === 'add') addRoute(routeForm);
-    else if (editingRoute) updateRoute(editingRoute.id, routeForm);
-    setRouteModal(null);
   };
 
   const saveFlight = () => {
@@ -154,6 +311,11 @@ export default function Routes() {
       .map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
 
+  const newHubsNeeded = routeModal ? [
+    originAirport && !resolveHub(originAirport) ? originAirport : null,
+    destAirport && !resolveHub(destAirport) ? destAirport : null,
+  ].filter(Boolean) as AirportRecord[] : [];
+
   return (
     <div style={{ padding: 32 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -161,17 +323,13 @@ export default function Routes() {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0' }}>Routes</h1>
           <p style={{ color: '#64748b', marginTop: 4 }}>Manage routes and scheduled flights</p>
         </div>
-        <Btn onClick={openAddRoute} disabled={hubs.length < 2}>
-          {hubs.length < 2 ? 'Need 2+ hubs' : '+ Add Route'}
-        </Btn>
+        <Btn onClick={openAddRoute}>+ Add Route</Btn>
       </div>
 
       {routes.length === 0 && (
         <div style={{ textAlign: 'center', padding: 64, color: '#475569', border: '1px dashed #334155', borderRadius: 12 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>↗</div>
-          <p style={{ fontSize: 16, color: '#64748b' }}>
-            No routes yet. {hubs.length < 2 ? 'Add at least two hubs first.' : 'Add your first route.'}
-          </p>
+          <p style={{ fontSize: 16, color: '#64748b' }}>No routes yet. Add your first route.</p>
         </div>
       )}
 
@@ -293,37 +451,24 @@ export default function Routes() {
 
       {/* Route modal */}
       {(routeModal === 'add' || routeModal === 'edit') && (
-        <Modal title={routeModal === 'add' ? 'Add Route' : 'Edit Route'} onClose={() => setRouteModal(null)} width={480}>
+        <Modal title={routeModal === 'add' ? 'Add Route' : 'Edit Route'} onClose={() => setRouteModal(null)} width={520}>
           <FormRow>
-            <FormField label="Origin (ICAO / IATA)" required>
-              <Input
-                placeholder="e.g. EGLL or LHR"
-                value={originCode}
-                onChange={(e) => handleOriginCode(e.target.value)}
-                autoFocus
-              />
-              {originCode && (
-                <div style={{ fontSize: 12, marginTop: 4, color: routeForm.originHubId ? '#4ade80' : '#f87171' }}>
-                  {routeForm.originHubId
-                    ? `✓ ${hubs.find((h) => h.id === routeForm.originHubId)?.name}`
-                    : 'No matching hub'}
-                </div>
-              )}
-            </FormField>
-            <FormField label="Destination (ICAO / IATA)" required>
-              <Input
-                placeholder="e.g. KJFK or JFK"
-                value={destCode}
-                onChange={(e) => handleDestCode(e.target.value)}
-              />
-              {destCode && (
-                <div style={{ fontSize: 12, marginTop: 4, color: routeForm.destinationHubId ? '#4ade80' : '#f87171' }}>
-                  {routeForm.destinationHubId
-                    ? `✓ ${hubs.find((h) => h.id === routeForm.destinationHubId)?.name}`
-                    : 'No matching hub'}
-                </div>
-              )}
-            </FormField>
+            <AirportInput
+              label="Origin"
+              value={originCode}
+              airport={originAirport}
+              hubBadge={!!(originAirport && resolveHub(originAirport))}
+              onSelect={handleSelectOrigin}
+              onClear={clearOrigin}
+            />
+            <AirportInput
+              label="Destination"
+              value={destCode}
+              airport={destAirport}
+              hubBadge={!!(destAirport && resolveHub(destAirport))}
+              onSelect={handleSelectDest}
+              onClear={clearDest}
+            />
           </FormRow>
           <FormField label="Distance (km)" required hint={distAutoCalc ? 'Auto-calculated from coordinates' : undefined}>
             <Input
@@ -332,9 +477,15 @@ export default function Routes() {
               onChange={(e) => { setDistAutoCalc(false); setRouteForm((p) => ({ ...p, distanceKm: parseInt(e.target.value) || 0 })); }}
             />
           </FormField>
+          {newHubsNeeded.length > 0 && (
+            <div style={{ background: '#0c2a1a', border: '1px solid #166534', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: '#4ade80', marginBottom: 8 }}>
+              <strong>New hubs will be created:</strong>{' '}
+              {newHubsNeeded.map((a) => `${a.iata} – ${a.name}`).join(', ')}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
             <Btn variant="ghost" onClick={() => setRouteModal(null)}>Cancel</Btn>
-            <Btn onClick={saveRoute} disabled={!routeForm.originHubId || !routeForm.destinationHubId}>Save Route</Btn>
+            <Btn onClick={saveRoute} disabled={!originAirport || !destAirport || !routeForm.distanceKm}>Save Route</Btn>
           </div>
         </Modal>
       )}
