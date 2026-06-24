@@ -75,6 +75,7 @@ interface State {
   addTerminal: (hubId: string, name: string) => void;
   updateTerminal: (hubId: string, terminalId: string, name: string) => void;
   deleteTerminal: (hubId: string, terminalId: string) => void;
+  ensureDefaultTerminal: (hubId: string) => string; // returns terminal id
 
   // Gate actions
   addGate: (hubId: string, terminalId: string, name: string) => void;
