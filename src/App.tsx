@@ -18,6 +18,6 @@ export default function App() {
           <Route path="routes" element={<RoutesPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
