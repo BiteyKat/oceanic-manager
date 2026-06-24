@@ -22,8 +22,8 @@ export default function Dashboard() {
   const activeRoutes = routes.filter((r) => r.status === 'active').length;
   const assignedAc = aircraft.filter((a) => a.status === 'assigned').length;
   const availableAc = aircraft.filter((a) => a.status === 'available').length;
-  const totalGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates)).length;
-  const assignedGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates.filter((g) => g.routeId))).length;
+  const totalGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates ?? [])).length;
+  const assignedGates = hubs.flatMap((h) => h.terminals.flatMap((t) => (t.gates ?? []).filter((g) => g.routeId))).length;
 
   const routesByHub = hubs.map((h) => ({
     hub: h,

@@ -251,6 +251,35 @@ export const useStore = create<State>()(
           };
         }),
     }),
-    { name: 'oceanic-manager' }
+    {
+      name: 'oceanic-manager',
+      version: 1,
+      migrate: (persisted: any, version: number) => {
+        if (version < 1) {
+          // Migrate slots → gates on terminals, and slot IDs → gate IDs on routes
+          return {
+            ...persisted,
+            hubs: (persisted.hubs ?? []).map((h: any) => ({
+              ...h,
+              terminals: (h.terminals ?? []).map((t: any) => ({
+                ...t,
+                gates: t.gates ?? (t.slots ?? []).map((s: any) => ({
+                  id: s.id,
+                  terminalId: t.id,
+                  hubId: h.id,
+                  name: s.name ?? s.type ?? 'Gate',
+                })),
+              })),
+            })),
+            routes: (persisted.routes ?? []).map((r: any) => ({
+              ...r,
+              departureGateId: r.departureGateId ?? r.departureSlotId,
+              arrivalGateId: r.arrivalGateId ?? r.arrivalSlotId,
+            })),
+          };
+        }
+        return persisted;
+      },
+    }
   )
 );
