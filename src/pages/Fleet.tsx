@@ -27,6 +27,7 @@ export default function Fleet() {
   const [filterStatus, setFilterStatus] = useState('');
 
   const openAdd = () => { setForm(emptyAc()); setModal('add'); };
+  const openBulk = () => { setBulkForm(emptyBulk()); setModal('bulk'); };
   const openEdit = (a: Aircraft) => { setEditing(a); setForm({ ...a }); setModal('edit'); };
   const openAssign = (a: Aircraft) => { setEditing(a); setAssignHubId(a.hubId ?? ''); setModal('assign'); };
 
