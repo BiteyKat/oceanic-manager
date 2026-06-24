@@ -325,11 +325,11 @@ export default function Routes() {
               )}
             </FormField>
           </FormRow>
-          <FormField label="Distance (km)" required>
+          <FormField label="Distance (km)" required hint={distAutoCalc ? 'Auto-calculated from coordinates' : undefined}>
             <Input
               type="number" placeholder="0"
               value={routeForm.distanceKm || ''}
-              onChange={(e) => setRouteForm((p) => ({ ...p, distanceKm: parseInt(e.target.value) || 0 }))}
+              onChange={(e) => { setDistAutoCalc(false); setRouteForm((p) => ({ ...p, distanceKm: parseInt(e.target.value) || 0 })); }}
             />
           </FormField>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
