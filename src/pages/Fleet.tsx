@@ -44,6 +44,30 @@ export default function Fleet() {
     setModal(null);
   };
 
+  const saveBulk = () => {
+    if (!bulkForm.typeId) return;
+    const regs = bulkForm.registrations
+      .split('\n')
+      .map((r) => r.trim().toUpperCase())
+      .filter(Boolean);
+    if (!regs.length) return;
+    regs.forEach((registration) => {
+      addAircraft({
+        registration,
+        typeId: bulkForm.typeId,
+        hubId: bulkForm.hubId || undefined,
+        status: bulkForm.status,
+        routeId: undefined,
+      });
+    });
+    setModal(null);
+  };
+
+  const bulkRegs = bulkForm.registrations
+    .split('\n')
+    .map((r) => r.trim())
+    .filter(Boolean);
+
   const f = (field: keyof AcForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [field]: e.target.value || undefined }));
 
