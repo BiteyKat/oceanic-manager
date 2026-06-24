@@ -19,7 +19,8 @@ export default function Dashboard() {
   const routes = useStore((s) => s.routes);
   const types = useStore((s) => s.aircraftTypes);
 
-  const activeRoutes = routes.filter((r) => r.status === 'active').length;
+  const allFlights = routes.flatMap((r) => r.flights);
+  const activeFlights = allFlights.filter((f) => f.status === 'active').length;
   const assignedAc = aircraft.filter((a) => a.status === 'assigned').length;
   const availableAc = aircraft.filter((a) => a.status === 'available').length;
   const totalGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates ?? [])).length;
@@ -40,7 +41,8 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         <Stat label="Hubs" value={hubs.length} />
         <Stat label="Fleet" value={aircraft.length} sub={`${assignedAc} assigned · ${availableAc} available`} />
-        <Stat label="Routes" value={routes.length} sub={`${activeRoutes} active`} />
+        <Stat label="Routes" value={routes.length} sub={`${allFlights.length} flight${allFlights.length !== 1 ? 's' : ''}`} />
+        <Stat label="Flights" value={allFlights.length} sub={`${activeFlights} active`} />
         <Stat label="Gates" value={totalGates} sub={`${assignedGates} assigned`} />
         <Stat label="Aircraft Types" value={types.length} />
       </div>
@@ -81,9 +83,9 @@ export default function Dashboard() {
         </>
       )}
 
-      {routes.length > 0 && (
+      {allFlights.length > 0 && (
         <>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', marginTop: 32, marginBottom: 14 }}>Recent Routes</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', marginTop: 32, marginBottom: 14 }}>Recent Flights</h2>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -94,22 +96,23 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {routes.slice(0, 10).map((r) => {
-                  const origin = hubs.find((h) => h.id === r.originHubId);
-                  const dest = hubs.find((h) => h.id === r.destinationHubId);
-                  const ac = aircraft.find((a) => a.id === r.aircraftId);
+                {allFlights.slice(0, 10).map((f) => {
+                  const route = routes.find((r) => r.id === f.routeId);
+                  const origin = hubs.find((h) => h.id === route?.originHubId);
+                  const dest = hubs.find((h) => h.id === route?.destinationHubId);
+                  const ac = aircraft.find((a) => a.id === f.aircraftId);
                   return (
-                    <tr key={r.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                      <td style={{ padding: '10px 16px', fontSize: 13, color: '#e2e8f0', fontWeight: 600 }}>{r.flightNumber}</td>
+                    <tr key={f.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                      <td style={{ padding: '10px 16px', fontSize: 13, color: '#e2e8f0', fontWeight: 600 }}>{f.flightNumber}</td>
                       <td style={{ padding: '10px 16px', fontSize: 13, color: '#94a3b8' }}>{origin?.iata ?? '—'}</td>
                       <td style={{ padding: '10px 16px', fontSize: 13, color: '#94a3b8' }}>{dest?.iata ?? '—'}</td>
-                      <td style={{ padding: '10px 16px', fontSize: 13, color: '#94a3b8' }}>{r.distanceKm.toLocaleString()} km</td>
+                      <td style={{ padding: '10px 16px', fontSize: 13, color: '#94a3b8' }}>{route ? `${route.distanceKm.toLocaleString()} km` : '—'}</td>
                       <td style={{ padding: '10px 16px' }}>
                         <span style={{
                           padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
-                          background: r.status === 'active' ? '#14532d' : r.status === 'planned' ? '#1e3a5f' : '#3b1515',
-                          color: r.status === 'active' ? '#4ade80' : r.status === 'planned' ? '#60a5fa' : '#f87171',
-                        }}>{r.status}</span>
+                          background: f.status === 'active' ? '#14532d' : f.status === 'planned' ? '#1e3a5f' : '#3b1515',
+                          color: f.status === 'active' ? '#4ade80' : f.status === 'planned' ? '#60a5fa' : '#f87171',
+                        }}>{f.status}</span>
                       </td>
                       <td style={{ padding: '10px 16px', fontSize: 13, color: '#94a3b8' }}>{ac?.registration ?? '—'}</td>
                     </tr>
