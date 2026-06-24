@@ -42,19 +42,34 @@ export default function Routes() {
   const [flightForm, setFlightForm] = useState<FlightForm>(emptyFlight());
   const [originCode, setOriginCode] = useState('');
   const [destCode, setDestCode] = useState('');
+  const [distAutoCalc, setDistAutoCalc] = useState(false);
 
   const findHub = (code: string) => {
     const u = code.trim().toUpperCase();
     return hubs.find((h) => h.icao.toUpperCase() === u || h.iata.toUpperCase() === u);
   };
 
+  const calcDist = (h1: typeof hubs[0] | undefined, h2: typeof hubs[0] | undefined) => {
+    if (h1?.lat != null && h1?.lon != null && h2?.lat != null && h2?.lon != null)
+      return haversineKm(h1.lat, h1.lon, h2.lat, h2.lon);
+    return undefined;
+  };
+
   const handleOriginCode = (val: string) => {
     setOriginCode(val);
-    setRouteForm((p) => ({ ...p, originHubId: findHub(val)?.id ?? '' }));
+    const originHub = findHub(val);
+    const destHub = hubs.find((h) => h.id === routeForm.destinationHubId);
+    const dist = calcDist(originHub, destHub);
+    setDistAutoCalc(dist !== undefined);
+    setRouteForm((p) => ({ ...p, originHubId: originHub?.id ?? '', ...(dist !== undefined ? { distanceKm: dist } : {}) }));
   };
   const handleDestCode = (val: string) => {
     setDestCode(val);
-    setRouteForm((p) => ({ ...p, destinationHubId: findHub(val)?.id ?? '' }));
+    const originHub = hubs.find((h) => h.id === routeForm.originHubId);
+    const destHub = findHub(val);
+    const dist = calcDist(originHub, destHub);
+    setDistAutoCalc(dist !== undefined);
+    setRouteForm((p) => ({ ...p, destinationHubId: destHub?.id ?? '', ...(dist !== undefined ? { distanceKm: dist } : {}) }));
   };
 
   const openAddRoute = () => {
