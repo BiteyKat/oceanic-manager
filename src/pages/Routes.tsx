@@ -270,19 +270,34 @@ export default function Routes() {
       {(routeModal === 'add' || routeModal === 'edit') && (
         <Modal title={routeModal === 'add' ? 'Add Route' : 'Edit Route'} onClose={() => setRouteModal(null)} width={480}>
           <FormRow>
-            <FormField label="Origin Hub" required>
-              <Select value={routeForm.originHubId} onChange={(e) => setRouteForm((p) => ({ ...p, originHubId: e.target.value }))}>
-                <option value="">Select origin…</option>
-                {hubs.map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
-              </Select>
+            <FormField label="Origin (ICAO / IATA)" required>
+              <Input
+                placeholder="e.g. EGLL or LHR"
+                value={originCode}
+                onChange={(e) => handleOriginCode(e.target.value)}
+                autoFocus
+              />
+              {originCode && (
+                <div style={{ fontSize: 12, marginTop: 4, color: routeForm.originHubId ? '#4ade80' : '#f87171' }}>
+                  {routeForm.originHubId
+                    ? `✓ ${hubs.find((h) => h.id === routeForm.originHubId)?.name}`
+                    : 'No matching hub'}
+                </div>
+              )}
             </FormField>
-            <FormField label="Destination Hub" required>
-              <Select value={routeForm.destinationHubId} onChange={(e) => setRouteForm((p) => ({ ...p, destinationHubId: e.target.value }))}>
-                <option value="">Select destination…</option>
-                {hubs.filter((h) => h.id !== routeForm.originHubId).map((h) => (
-                  <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>
-                ))}
-              </Select>
+            <FormField label="Destination (ICAO / IATA)" required>
+              <Input
+                placeholder="e.g. KJFK or JFK"
+                value={destCode}
+                onChange={(e) => handleDestCode(e.target.value)}
+              />
+              {destCode && (
+                <div style={{ fontSize: 12, marginTop: 4, color: routeForm.destinationHubId ? '#4ade80' : '#f87171' }}>
+                  {routeForm.destinationHubId
+                    ? `✓ ${hubs.find((h) => h.id === routeForm.destinationHubId)?.name}`
+                    : 'No matching hub'}
+                </div>
+              )}
             </FormField>
           </FormRow>
           <FormField label="Distance (km)" required>
