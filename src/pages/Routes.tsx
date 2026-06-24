@@ -73,7 +73,7 @@ export default function Routes() {
   };
 
   const openAddRoute = () => {
-    setRouteForm(emptyRoute()); setOriginCode(''); setDestCode('');
+    setRouteForm(emptyRoute()); setOriginCode(''); setDestCode(''); setDistAutoCalc(false);
     setEditingRoute(null); setRouteModal('add');
   };
   const openEditRoute = (r: Route) => {
@@ -82,7 +82,9 @@ export default function Routes() {
     const dst = hubs.find((h) => h.id === r.destinationHubId);
     setOriginCode(orig?.icao ?? orig?.iata ?? '');
     setDestCode(dst?.icao ?? dst?.iata ?? '');
-    setRouteForm({ originHubId: r.originHubId, destinationHubId: r.destinationHubId, distanceKm: r.distanceKm });
+    const dist = calcDist(orig, dst);
+    setDistAutoCalc(dist !== undefined);
+    setRouteForm({ originHubId: r.originHubId, destinationHubId: r.destinationHubId, distanceKm: dist ?? r.distanceKm });
     setRouteModal('edit');
   };
 
