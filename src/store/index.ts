@@ -103,7 +103,7 @@ interface State {
 
 export const useStore = create<State>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       hubs: [],
       aircraft: [],
       aircraftTypes: DEFAULT_AIRCRAFT_TYPES,
