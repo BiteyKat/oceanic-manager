@@ -12,8 +12,8 @@ const emptyRoute = (): RouteForm => ({
   originHubId: '',
   destinationHubId: '',
   aircraftId: undefined,
-  departureSlotId: undefined,
-  arrivalSlotId: undefined,
+  departureGateId: undefined,
+  arrivalGateId: undefined,
   distanceKm: 0,
   status: 'planned',
   daysOfOperation: [1, 2, 3, 4, 5],
@@ -26,12 +26,12 @@ const STATUS_COLORS: Record<RouteStatus, { bg: string; color: string }> = {
 };
 
 export default function Routes() {
-  const { routes, hubs, aircraft, aircraftTypes, addRoute, updateRoute, deleteRoute, assignAircraftToRoute, assignSlotsToRoute } = useStore();
+  const { routes, hubs, aircraft, aircraftTypes, addRoute, updateRoute, deleteRoute, assignAircraftToRoute, assignGatesToRoute } = useStore();
   const [modal, setModal] = useState<null | 'add' | 'edit' | 'assign'>(null);
   const [editing, setEditing] = useState<Route | null>(null);
   const [form, setForm] = useState<RouteForm>(emptyRoute());
-  const [assignForm, setAssignForm] = useState<{ aircraftId: string; departureSlotId: string; arrivalSlotId: string }>({
-    aircraftId: '', departureSlotId: '', arrivalSlotId: '',
+  const [assignForm, setAssignForm] = useState<{ aircraftId: string; departureGateId: string; arrivalGateId: string }>({
+    aircraftId: '', departureGateId: '', arrivalGateId: '',
   });
   const [filterStatus, setFilterStatus] = useState('');
   const [filterHub, setFilterHub] = useState('');
@@ -42,8 +42,8 @@ export default function Routes() {
     setEditing(r);
     setAssignForm({
       aircraftId: r.aircraftId ?? '',
-      departureSlotId: r.departureSlotId ?? '',
-      arrivalSlotId: r.arrivalSlotId ?? '',
+      departureGateId: r.departureGateId ?? '',
+      arrivalGateId: r.arrivalGateId ?? '',
     });
     setModal('assign');
   };
@@ -58,7 +58,7 @@ export default function Routes() {
   const doAssign = () => {
     if (!editing) return;
     assignAircraftToRoute(editing.id, assignForm.aircraftId || undefined);
-    assignSlotsToRoute(editing.id, assignForm.departureSlotId || undefined, assignForm.arrivalSlotId || undefined);
+    assignGatesToRoute(editing.id, assignForm.departureGateId || undefined, assignForm.arrivalGateId || undefined);
     setModal(null);
   };
 
@@ -82,14 +82,14 @@ export default function Routes() {
     a.status === 'available' || (editing && a.id === editing.aircraftId)
   );
 
-  const depSlots = assignOriginHub?.terminals.flatMap((t) =>
-    t.slots.filter((s) => (s.type === 'departure' || s.type === 'both') && (!s.routeId || s.routeId === editing?.id))
-      .map((s) => ({ ...s, terminalName: t.name }))
+  const depGates = assignOriginHub?.terminals.flatMap((t) =>
+    t.gates.filter((g) => !g.routeId || g.routeId === editing?.id)
+      .map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
 
-  const arrSlots = assignDestHub?.terminals.flatMap((t) =>
-    t.slots.filter((s) => (s.type === 'arrival' || s.type === 'both') && (!s.routeId || s.routeId === editing?.id))
-      .map((s) => ({ ...s, terminalName: t.name }))
+  const arrGates = assignDestHub?.terminals.flatMap((t) =>
+    t.gates.filter((g) => !g.routeId || g.routeId === editing?.id)
+      .map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
 
   return (
@@ -133,8 +133,8 @@ export default function Routes() {
             const acType = ac ? aircraftTypes.find((t) => t.id === ac.typeId) : null;
             const sc = STATUS_COLORS[r.status];
 
-            const depSlotInfo = origin?.terminals.flatMap((t) => t.slots.filter((s) => s.id === r.departureSlotId).map((s) => ({ ...s, terminalName: t.name })))[0];
-            const arrSlotInfo = dest?.terminals.flatMap((t) => t.slots.filter((s) => s.id === r.arrivalSlotId).map((s) => ({ ...s, terminalName: t.name })))[0];
+            const depGateInfo = origin?.terminals.flatMap((t) => t.gates.filter((g) => g.id === r.departureGateId).map((g) => ({ ...g, terminalName: t.name })))[0];
+            const arrGateInfo = dest?.terminals.flatMap((t) => t.gates.filter((g) => g.id === r.arrivalGateId).map((g) => ({ ...g, terminalName: t.name })))[0];
 
             return (
               <div key={r.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '16px 20px' }}>
@@ -156,11 +156,11 @@ export default function Routes() {
                       </span>
                       <span style={{ color: '#334155' }}>·</span>
                       <span style={{ color: '#64748b' }}>
-                        Dep: <span style={{ color: depSlotInfo ? '#38bdf8' : '#475569' }}>{depSlotInfo ? `${depSlotInfo.time} – ${depSlotInfo.terminalName}` : 'No slot'}</span>
+                        Dep gate: <span style={{ color: depGateInfo ? '#38bdf8' : '#475569' }}>{depGateInfo ? `${depGateInfo.name} – ${depGateInfo.terminalName}` : 'No gate'}</span>
                       </span>
                       <span style={{ color: '#334155' }}>·</span>
                       <span style={{ color: '#64748b' }}>
-                        Arr: <span style={{ color: arrSlotInfo ? '#38bdf8' : '#475569' }}>{arrSlotInfo ? `${arrSlotInfo.time} – ${arrSlotInfo.terminalName}` : 'No slot'}</span>
+                        Arr gate: <span style={{ color: arrGateInfo ? '#38bdf8' : '#475569' }}>{arrGateInfo ? `${arrGateInfo.name} – ${arrGateInfo.terminalName}` : 'No gate'}</span>
                       </span>
                     </div>
                     <div style={{ marginTop: 8, display: 'flex', gap: 3 }}>
@@ -198,13 +198,13 @@ export default function Routes() {
           </FormRow>
           <FormRow>
             <FormField label="Origin Hub" required>
-              <Select value={form.originHubId} onChange={(e) => setForm((p) => ({ ...p, originHubId: e.target.value, departureSlotId: undefined }))}>
+              <Select value={form.originHubId} onChange={(e) => setForm((p) => ({ ...p, originHubId: e.target.value, departureGateId: undefined }))}>
                 <option value="">Select origin…</option>
                 {hubs.map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
               </Select>
             </FormField>
             <FormField label="Destination Hub" required>
-              <Select value={form.destinationHubId} onChange={(e) => setForm((p) => ({ ...p, destinationHubId: e.target.value, arrivalSlotId: undefined }))}>
+              <Select value={form.destinationHubId} onChange={(e) => setForm((p) => ({ ...p, destinationHubId: e.target.value, arrivalGateId: undefined }))}>
                 <option value="">Select destination…</option>
                 {hubs.filter((h) => h.id !== form.originHubId).map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
               </Select>
@@ -253,27 +253,27 @@ export default function Routes() {
             </Select>
           </FormField>
           <FormRow>
-            <FormField label={`Departure Slot (${assignOriginHub?.iata ?? '?'})`}>
-              <Select value={assignForm.departureSlotId} onChange={(e) => setAssignForm((p) => ({ ...p, departureSlotId: e.target.value }))}>
-                <option value="">No slot</option>
-                {depSlots.map((s) => <option key={s.id} value={s.id}>{s.time} – {s.terminalName}</option>)}
+            <FormField label={`Departure Gate (${assignOriginHub?.iata ?? '?'})`}>
+              <Select value={assignForm.departureGateId} onChange={(e) => setAssignForm((p) => ({ ...p, departureGateId: e.target.value }))}>
+                <option value="">No gate</option>
+                {depGates.map((g) => <option key={g.id} value={g.id}>{g.name} – {g.terminalName}</option>)}
               </Select>
             </FormField>
-            <FormField label={`Arrival Slot (${assignDestHub?.iata ?? '?'})`}>
-              <Select value={assignForm.arrivalSlotId} onChange={(e) => setAssignForm((p) => ({ ...p, arrivalSlotId: e.target.value }))}>
-                <option value="">No slot</option>
-                {arrSlots.map((s) => <option key={s.id} value={s.id}>{s.time} – {s.terminalName}</option>)}
+            <FormField label={`Arrival Gate (${assignDestHub?.iata ?? '?'})`}>
+              <Select value={assignForm.arrivalGateId} onChange={(e) => setAssignForm((p) => ({ ...p, arrivalGateId: e.target.value }))}>
+                <option value="">No gate</option>
+                {arrGates.map((g) => <option key={g.id} value={g.id}>{g.name} – {g.terminalName}</option>)}
               </Select>
             </FormField>
           </FormRow>
-          {depSlots.length === 0 && assignOriginHub && (
+          {depGates.length === 0 && assignOriginHub && (
             <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
-              No departure slots available at {assignOriginHub.iata}. Add slots in the Hubs page.
+              No gates available at {assignOriginHub.iata}. Add gates in the Hubs page.
             </p>
           )}
-          {arrSlots.length === 0 && assignDestHub && (
+          {arrGates.length === 0 && assignDestHub && (
             <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
-              No arrival slots available at {assignDestHub.iata}. Add slots in the Hubs page.
+              No gates available at {assignDestHub.iata}. Add gates in the Hubs page.
             </p>
           )}
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>

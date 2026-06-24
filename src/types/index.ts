@@ -1,5 +1,4 @@
 export type AircraftCategory = 'narrowbody' | 'widebody' | 'regional' | 'turboprop';
-export type SlotType = 'departure' | 'arrival' | 'both';
 export type RouteStatus = 'active' | 'suspended' | 'planned';
 
 export interface Hub {
@@ -17,16 +16,15 @@ export interface Terminal {
   id: string;
   hubId: string;
   name: string;
-  slots: Slot[];
+  gates: Gate[];
 }
 
-export interface Slot {
+export interface Gate {
   id: string;
   terminalId: string;
   hubId: string;
-  time: string; // "HH:MM"
-  type: SlotType;
-  routeId?: string; // assigned route
+  name: string; // e.g. "A1", "Gate 12"
+  routeId?: string;
 }
 
 export interface AircraftType {
@@ -55,8 +53,8 @@ export interface Route {
   originHubId: string;
   destinationHubId: string;
   aircraftId?: string;
-  departureSlotId?: string;
-  arrivalSlotId?: string;
+  departureGateId?: string;
+  arrivalGateId?: string;
   distanceKm: number;
   status: RouteStatus;
   daysOfOperation: number[]; // 0=Sun, 1=Mon ... 6=Sat

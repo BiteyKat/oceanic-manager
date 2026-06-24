@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import type { Hub, Slot, SlotType } from '../types';
+import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn } from '../components/FormField';
 
@@ -16,15 +16,15 @@ type HubForm = Omit<Hub, 'id' | 'terminals'>;
 const emptyHub = (): HubForm => ({ name: '', iata: '', icao: '', city: '', country: '', timezone: 'UTC' });
 
 export default function Hubs() {
-  const { hubs, addHub, updateHub, deleteHub, addTerminal, deleteTerminal, addSlot, updateSlot, deleteSlot } = useStore();
+  const { hubs, addHub, updateHub, deleteHub, addTerminal, deleteTerminal, addGate, updateGate, deleteGate } = useStore();
   const [modal, setModal] = useState<null | 'addHub' | 'editHub'>(null);
   const [editingHub, setEditingHub] = useState<Hub | null>(null);
   const [form, setForm] = useState<HubForm>(emptyHub());
   const [expandedHub, setExpandedHub] = useState<string | null>(null);
   const [terminalName, setTerminalName] = useState('');
   const [addingTerminalFor, setAddingTerminalFor] = useState<string | null>(null);
-  const [slotModal, setSlotModal] = useState<{ hubId: string; terminalId: string; slot?: Slot } | null>(null);
-  const [slotForm, setSlotForm] = useState<{ time: string; type: SlotType }>({ time: '08:00', type: 'both' });
+  const [gateModal, setGateModal] = useState<{ hubId: string; terminalId: string; gate?: Gate } | null>(null);
+  const [gateName, setGateName] = useState('');
 
   const openAdd = () => { setForm(emptyHub()); setModal('addHub'); };
   const openEdit = (hub: Hub) => {
@@ -40,16 +40,16 @@ export default function Hubs() {
     setModal(null);
   };
 
-  const openSlot = (hubId: string, terminalId: string, slot?: Slot) => {
-    setSlotModal({ hubId, terminalId, slot });
-    setSlotForm(slot ? { time: slot.time, type: slot.type } : { time: '08:00', type: 'both' });
+  const openGate = (hubId: string, terminalId: string, gate?: Gate) => {
+    setGateModal({ hubId, terminalId, gate });
+    setGateName(gate?.name ?? '');
   };
 
-  const saveSlot = () => {
-    if (!slotModal) return;
-    if (slotModal.slot) updateSlot(slotModal.hubId, slotModal.terminalId, slotModal.slot.id, slotForm);
-    else addSlot(slotModal.hubId, slotModal.terminalId, slotForm);
-    setSlotModal(null);
+  const saveGate = () => {
+    if (!gateModal || !gateName.trim()) return;
+    if (gateModal.gate) updateGate(gateModal.hubId, gateModal.terminalId, gateModal.gate.id, gateName.trim());
+    else addGate(gateModal.hubId, gateModal.terminalId, gateName.trim());
+    setGateModal(null);
   };
 
   const f = (field: keyof HubForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -60,7 +60,7 @@ export default function Hubs() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0' }}>Hubs</h1>
-          <p style={{ color: '#64748b', marginTop: 4 }}>Manage airport hubs, terminals, and slots</p>
+          <p style={{ color: '#64748b', marginTop: 4 }}>Manage airport hubs, terminals, and gates</p>
         </div>
         <Btn onClick={openAdd}>+ Add Hub</Btn>
       </div>
@@ -75,8 +75,8 @@ export default function Hubs() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {hubs.map((hub) => {
           const isExpanded = expandedHub === hub.id;
-          const totalSlots = hub.terminals.flatMap((t) => t.slots).length;
-          const assignedSlots = hub.terminals.flatMap((t) => t.slots.filter((s) => s.routeId)).length;
+          const totalGates = hub.terminals.flatMap((t) => t.gates).length;
+          const assignedGates = hub.terminals.flatMap((t) => t.gates.filter((g) => g.routeId)).length;
           return (
             <div key={hub.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
@@ -91,7 +91,7 @@ export default function Hubs() {
                 </div>
                 <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#64748b', marginRight: 8 }}>
                   <span>{hub.terminals.length} terminal{hub.terminals.length !== 1 ? 's' : ''}</span>
-                  <span>{totalSlots} slots ({assignedSlots} assigned)</span>
+                  <span>{totalGates} gate{totalGates !== 1 ? 's' : ''} ({assignedGates} assigned)</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openEdit(hub)}>Edit</Btn>
@@ -140,33 +140,27 @@ export default function Hubs() {
                       <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid #334155' }}>
                         <span style={{ fontWeight: 600, color: '#e2e8f0', flex: 1 }}>{terminal.name}</span>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <Btn style={{ padding: '3px 10px', fontSize: 11 }} onClick={() => openSlot(hub.id, terminal.id)}>+ Slot</Btn>
+                          <Btn style={{ padding: '3px 10px', fontSize: 11 }} onClick={() => openGate(hub.id, terminal.id)}>+ Gate</Btn>
                           <Btn variant="danger" style={{ padding: '3px 10px', fontSize: 11 }} onClick={() => deleteTerminal(hub.id, terminal.id)}>Remove</Btn>
                         </div>
                       </div>
-                      {terminal.slots.length === 0 && (
-                        <p style={{ padding: '8px 14px', color: '#475569', fontSize: 12 }}>No slots assigned</p>
+                      {terminal.gates.length === 0 && (
+                        <p style={{ padding: '8px 14px', color: '#475569', fontSize: 12 }}>No gates assigned</p>
                       )}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: terminal.slots.length ? '10px 14px' : 0 }}>
-                        {terminal.slots
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: terminal.gates.length ? '10px 14px' : 0 }}>
+                        {terminal.gates
                           .slice()
-                          .sort((a, b) => a.time.localeCompare(b.time))
-                          .map((slot) => (
-                            <div key={slot.id} style={{
-                              background: slot.routeId ? '#0c4a6e' : '#0f172a',
-                              border: `1px solid ${slot.routeId ? '#0369a1' : '#334155'}`,
+                          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+                          .map((gate) => (
+                            <div key={gate.id} style={{
+                              background: gate.routeId ? '#0c4a6e' : '#0f172a',
+                              border: `1px solid ${gate.routeId ? '#0369a1' : '#334155'}`,
                               borderRadius: 6, padding: '4px 10px', fontSize: 12,
                               display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                            }} onClick={() => openSlot(hub.id, terminal.id, slot)}>
-                              <span style={{ color: slot.routeId ? '#38bdf8' : '#94a3b8', fontWeight: 600 }}>{slot.time}</span>
-                              <span style={{
-                                color: slot.type === 'departure' ? '#4ade80' : slot.type === 'arrival' ? '#f59e0b' : '#a78bfa',
-                                fontSize: 10,
-                              }}>
-                                {slot.type === 'departure' ? 'DEP' : slot.type === 'arrival' ? 'ARR' : 'B'}
-                              </span>
-                              {slot.routeId && <span style={{ color: '#38bdf8', fontSize: 10 }}>●</span>}
-                              <button onClick={(e) => { e.stopPropagation(); deleteSlot(hub.id, terminal.id, slot.id); }} style={{
+                            }} onClick={() => openGate(hub.id, terminal.id, gate)}>
+                              <span style={{ color: gate.routeId ? '#38bdf8' : '#94a3b8', fontWeight: 600 }}>{gate.name}</span>
+                              {gate.routeId && <span style={{ color: '#38bdf8', fontSize: 10 }}>●</span>}
+                              <button onClick={(e) => { e.stopPropagation(); deleteGate(hub.id, terminal.id, gate.id); }} style={{
                                 background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: '0 2px',
                               }}>×</button>
                             </div>
@@ -216,21 +210,20 @@ export default function Hubs() {
         </Modal>
       )}
 
-      {slotModal && (
-        <Modal title={slotModal.slot ? 'Edit Slot' : 'Add Slot'} onClose={() => setSlotModal(null)} width={360}>
-          <FormField label="Time (HH:MM)" required>
-            <Input type="time" value={slotForm.time} onChange={(e) => setSlotForm((p) => ({ ...p, time: e.target.value }))} />
-          </FormField>
-          <FormField label="Slot Type">
-            <Select value={slotForm.type} onChange={(e) => setSlotForm((p) => ({ ...p, type: e.target.value as SlotType }))}>
-              <option value="both">Both (Dep + Arr)</option>
-              <option value="departure">Departure only</option>
-              <option value="arrival">Arrival only</option>
-            </Select>
+      {gateModal && (
+        <Modal title={gateModal.gate ? 'Edit Gate' : 'Add Gate'} onClose={() => setGateModal(null)} width={340}>
+          <FormField label="Gate Name" required hint='e.g. "A1", "Gate 12", "B32"'>
+            <Input
+              placeholder="e.g. A1"
+              value={gateName}
+              onChange={(e) => setGateName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveGate(); }}
+              autoFocus
+            />
           </FormField>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-            <Btn variant="ghost" onClick={() => setSlotModal(null)}>Cancel</Btn>
-            <Btn onClick={saveSlot}>Save Slot</Btn>
+            <Btn variant="ghost" onClick={() => setGateModal(null)}>Cancel</Btn>
+            <Btn onClick={saveGate} disabled={!gateName.trim()}>Save Gate</Btn>
           </div>
         </Modal>
       )}

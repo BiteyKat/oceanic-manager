@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
-import type { Hub, Slot, Aircraft, AircraftType, Route } from '../types';
+import type { Hub, Aircraft, AircraftType, Route } from '../types';
 
 const DEFAULT_AIRCRAFT_TYPES: AircraftType[] = [
   { id: 'b737-800', manufacturer: 'Boeing', model: '737-800', category: 'narrowbody', paxCapacity: 162, rangeKm: 5765, cruiseSpeedKmh: 842 },
@@ -34,10 +34,10 @@ interface State {
   updateTerminal: (hubId: string, terminalId: string, name: string) => void;
   deleteTerminal: (hubId: string, terminalId: string) => void;
 
-  // Slot actions
-  addSlot: (hubId: string, terminalId: string, slot: Omit<Slot, 'id' | 'terminalId' | 'hubId' | 'routeId'>) => void;
-  updateSlot: (hubId: string, terminalId: string, slotId: string, data: Partial<Pick<Slot, 'time' | 'type'>>) => void;
-  deleteSlot: (hubId: string, terminalId: string, slotId: string) => void;
+  // Gate actions
+  addGate: (hubId: string, terminalId: string, name: string) => void;
+  updateGate: (hubId: string, terminalId: string, gateId: string, name: string) => void;
+  deleteGate: (hubId: string, terminalId: string, gateId: string) => void;
 
   // Aircraft actions
   addAircraft: (a: Omit<Aircraft, 'id'>) => void;
@@ -50,7 +50,7 @@ interface State {
   updateRoute: (id: string, data: Partial<Omit<Route, 'id'>>) => void;
   deleteRoute: (id: string) => void;
   assignAircraftToRoute: (routeId: string, aircraftId: string | undefined) => void;
-  assignSlotsToRoute: (routeId: string, departureSlotId: string | undefined, arrivalSlotId: string | undefined) => void;
+  assignGatesToRoute: (routeId: string, departureGateId: string | undefined, arrivalGateId: string | undefined) => void;
 }
 
 export const useStore = create<State>()(
@@ -82,7 +82,7 @@ export const useStore = create<State>()(
         set((s) => ({
           hubs: s.hubs.map((h) =>
             h.id === hubId
-              ? { ...h, terminals: [...h.terminals, { id: uuid(), hubId, name, slots: [] }] }
+              ? { ...h, terminals: [...h.terminals, { id: uuid(), hubId, name, gates: [] }] }
               : h
           ),
         })),
@@ -105,7 +105,7 @@ export const useStore = create<State>()(
           ),
         })),
 
-      addSlot: (hubId, terminalId, slot) =>
+      addGate: (hubId, terminalId, name) =>
         set((s) => ({
           hubs: s.hubs.map((h) =>
             h.id === hubId
@@ -113,7 +113,7 @@ export const useStore = create<State>()(
                   ...h,
                   terminals: h.terminals.map((t) =>
                     t.id === terminalId
-                      ? { ...t, slots: [...t.slots, { ...slot, id: uuid(), terminalId, hubId }] }
+                      ? { ...t, gates: [...t.gates, { id: uuid(), terminalId, hubId, name }] }
                       : t
                   ),
                 }
@@ -121,7 +121,7 @@ export const useStore = create<State>()(
           ),
         })),
 
-      updateSlot: (hubId, terminalId, slotId, data) =>
+      updateGate: (hubId, terminalId, gateId, name) =>
         set((s) => ({
           hubs: s.hubs.map((h) =>
             h.id === hubId
@@ -129,7 +129,7 @@ export const useStore = create<State>()(
                   ...h,
                   terminals: h.terminals.map((t) =>
                     t.id === terminalId
-                      ? { ...t, slots: t.slots.map((sl) => (sl.id === slotId ? { ...sl, ...data } : sl)) }
+                      ? { ...t, gates: t.gates.map((g) => (g.id === gateId ? { ...g, name } : g)) }
                       : t
                   ),
                 }
@@ -137,7 +137,7 @@ export const useStore = create<State>()(
           ),
         })),
 
-      deleteSlot: (hubId, terminalId, slotId) =>
+      deleteGate: (hubId, terminalId, gateId) =>
         set((s) => ({
           hubs: s.hubs.map((h) =>
             h.id === hubId
@@ -145,7 +145,7 @@ export const useStore = create<State>()(
                   ...h,
                   terminals: h.terminals.map((t) =>
                     t.id === terminalId
-                      ? { ...t, slots: t.slots.filter((sl) => sl.id !== slotId) }
+                      ? { ...t, gates: t.gates.filter((g) => g.id !== gateId) }
                       : t
                   ),
                 }
@@ -153,8 +153,8 @@ export const useStore = create<State>()(
           ),
           routes: s.routes.map((r) => {
             const updates: Partial<Route> = {};
-            if (r.departureSlotId === slotId) updates.departureSlotId = undefined;
-            if (r.arrivalSlotId === slotId) updates.arrivalSlotId = undefined;
+            if (r.departureGateId === gateId) updates.departureGateId = undefined;
+            if (r.arrivalGateId === gateId) updates.arrivalGateId = undefined;
             return Object.keys(updates).length ? { ...r, ...updates } : r;
           }),
         })),
@@ -203,8 +203,8 @@ export const useStore = create<State>()(
                   ...h,
                   terminals: h.terminals.map((t) => ({
                     ...t,
-                    slots: t.slots.map((sl) =>
-                      sl.routeId === id ? { ...sl, routeId: undefined } : sl
+                    gates: t.gates.map((g) =>
+                      g.routeId === id ? { ...g, routeId: undefined } : g
                     ),
                   })),
                 }))
@@ -226,25 +226,25 @@ export const useStore = create<State>()(
           };
         }),
 
-      assignSlotsToRoute: (routeId, departureSlotId, arrivalSlotId) =>
+      assignGatesToRoute: (routeId, departureGateId, arrivalGateId) =>
         set((s) => {
           const prevRoute = s.routes.find((r) => r.id === routeId);
           return {
             routes: s.routes.map((r) =>
-              r.id === routeId ? { ...r, departureSlotId, arrivalSlotId } : r
+              r.id === routeId ? { ...r, departureGateId, arrivalGateId } : r
             ),
             hubs: s.hubs.map((h) => ({
               ...h,
               terminals: h.terminals.map((t) => ({
                 ...t,
-                slots: t.slots.map((sl) => {
-                  if (sl.id === prevRoute?.departureSlotId || sl.id === prevRoute?.arrivalSlotId) {
-                    return { ...sl, routeId: undefined };
+                gates: t.gates.map((g) => {
+                  if (g.id === prevRoute?.departureGateId || g.id === prevRoute?.arrivalGateId) {
+                    return { ...g, routeId: undefined };
                   }
-                  if (sl.id === departureSlotId || sl.id === arrivalSlotId) {
-                    return { ...sl, routeId };
+                  if (g.id === departureGateId || g.id === arrivalGateId) {
+                    return { ...g, routeId };
                   }
-                  return sl;
+                  return g;
                 }),
               })),
             })),
