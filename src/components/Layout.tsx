@@ -4,6 +4,7 @@ import { useStore } from '../store';
 const nav = [
   { to: '/', label: 'Dashboard', icon: '▦' },
   { to: '/hubs', label: 'Hubs', icon: '✈' },
+  { to: '/airports', label: 'Airports', icon: '🗺' },
   { to: '/fleet', label: 'Fleet', icon: '🛩' },
   { to: '/routes', label: 'Routes', icon: '↗' },
 ];
