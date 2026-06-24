@@ -24,7 +24,7 @@ export interface Gate {
   terminalId: string;
   hubId: string;
   name: string; // e.g. "A1", "Gate 12"
-  routeId?: string;
+  routeId?: string; // points to a Flight id
 }
 
 export interface AircraftType {
@@ -43,19 +43,25 @@ export interface Aircraft {
   typeId: string;
   name?: string;
   hubId?: string;
-  routeId?: string;
+  routeId?: string; // points to a Flight id
   status: 'available' | 'assigned' | 'maintenance';
+}
+
+export interface Flight {
+  id: string;
+  routeId: string;
+  flightNumber: string;
+  aircraftId?: string;
+  departureGateId?: string;
+  arrivalGateId?: string;
+  status: RouteStatus;
+  daysOfOperation: number[]; // 0=Sun … 6=Sat
 }
 
 export interface Route {
   id: string;
-  flightNumber: string;
   originHubId: string;
   destinationHubId: string;
-  aircraftId?: string;
-  departureGateId?: string;
-  arrivalGateId?: string;
   distanceKm: number;
-  status: RouteStatus;
-  daysOfOperation: number[]; // 0=Sun, 1=Mon ... 6=Sat
+  flights: Flight[];
 }
