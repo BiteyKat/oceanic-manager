@@ -29,7 +29,7 @@ export default function Hubs() {
   const openAdd = () => { setForm(emptyHub()); setModal('addHub'); };
   const openEdit = (hub: Hub) => {
     setEditingHub(hub);
-    setForm({ name: hub.name, iata: hub.iata, icao: hub.icao, city: hub.city, country: hub.country, timezone: hub.timezone });
+    setForm({ name: hub.name, iata: hub.iata, icao: hub.icao, city: hub.city, country: hub.country, timezone: hub.timezone, lat: hub.lat, lon: hub.lon });
     setModal('editHub');
   };
 
