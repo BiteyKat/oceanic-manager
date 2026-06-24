@@ -295,13 +295,15 @@ export const useStore = create<State>()(
     }),
     {
       name: 'oceanic-manager',
-      version: 1,
+      version: 2,
       migrate: (persisted: any, version: number) => {
+        let state = persisted;
+
         if (version < 1) {
           // Migrate slots → gates on terminals, and slot IDs → gate IDs on routes
-          return {
-            ...persisted,
-            hubs: (persisted.hubs ?? []).map((h: any) => ({
+          state = {
+            ...state,
+            hubs: (state.hubs ?? []).map((h: any) => ({
               ...h,
               terminals: (h.terminals ?? []).map((t: any) => ({
                 ...t,
@@ -313,14 +315,25 @@ export const useStore = create<State>()(
                 })),
               })),
             })),
-            routes: (persisted.routes ?? []).map((r: any) => ({
+            routes: (state.routes ?? []).map((r: any) => ({
               ...r,
               departureGateId: r.departureGateId ?? r.departureSlotId,
               arrivalGateId: r.arrivalGateId ?? r.arrivalSlotId,
             })),
           };
         }
-        return persisted;
+
+        if (version < 2) {
+          // aircraftTypes are no longer persisted; drop stale copy so fresh defaults load
+          const { aircraftTypes: _drop, ...rest } = state;
+          state = rest;
+        }
+
+        return state;
+      },
+      partialize: (s) => {
+        const { aircraftTypes: _omit, ...rest } = s;
+        return rest as typeof s;
       },
     }
   )
