@@ -12,6 +12,7 @@ export interface Hub {
   lat?: number;
   lon?: number;
   terminals: Terminal[];
+  isRouteAirport?: boolean; // true = auto-created from route selection, not a full hub
 }
 
 export interface Terminal {
