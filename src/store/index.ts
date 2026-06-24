@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuid } from 'uuid';
-import type { Hub, Aircraft, AircraftType, Route } from '../types';
+import type { Hub, Aircraft, AircraftType, Route, Flight } from '../types';
 
 const DEFAULT_AIRCRAFT_TYPES: AircraftType[] = [
   // Boeing narrowbody
@@ -88,11 +88,16 @@ interface State {
   assignAircraftToHub: (aircraftId: string, hubId: string) => void;
 
   // Route actions
-  addRoute: (r: Omit<Route, 'id'>) => void;
-  updateRoute: (id: string, data: Partial<Omit<Route, 'id'>>) => void;
+  addRoute: (r: Omit<Route, 'id' | 'flights'>) => void;
+  updateRoute: (id: string, data: Partial<Omit<Route, 'id' | 'flights'>>) => void;
   deleteRoute: (id: string) => void;
-  assignAircraftToRoute: (routeId: string, aircraftId: string | undefined) => void;
-  assignGatesToRoute: (routeId: string, departureGateId: string | undefined, arrivalGateId: string | undefined) => void;
+
+  // Flight actions
+  addFlight: (routeId: string, f: Omit<Flight, 'id' | 'routeId'>) => void;
+  updateFlight: (routeId: string, flightId: string, data: Partial<Omit<Flight, 'id' | 'routeId'>>) => void;
+  deleteFlight: (routeId: string, flightId: string) => void;
+  assignAircraftToFlight: (routeId: string, flightId: string, aircraftId: string | undefined) => void;
+  assignGatesToFlight: (routeId: string, flightId: string, departureGateId: string | undefined, arrivalGateId: string | undefined) => void;
 }
 
 export const useStore = create<State>()(
@@ -114,11 +119,20 @@ export const useStore = create<State>()(
         })),
 
       deleteHub: (id) =>
-        set((s) => ({
-          hubs: s.hubs.filter((h) => h.id !== id),
-          routes: s.routes.filter((r) => r.originHubId !== id && r.destinationHubId !== id),
-          aircraft: s.aircraft.map((a) => (a.hubId === id ? { ...a, hubId: undefined, status: 'available' as const } : a)),
-        })),
+        set((s) => {
+          const removedRoutes = s.routes.filter((r) => r.originHubId === id || r.destinationHubId === id);
+          const removedFlightIds = new Set(removedRoutes.flatMap((r) => r.flights.map((f) => f.id)));
+          return {
+            hubs: s.hubs.filter((h) => h.id !== id),
+            routes: s.routes.filter((r) => r.originHubId !== id && r.destinationHubId !== id),
+            aircraft: s.aircraft.map((a) => {
+              const loseRoute = a.routeId && removedFlightIds.has(a.routeId);
+              const loseHub = a.hubId === id;
+              if (!loseRoute && !loseHub) return a;
+              return { ...a, hubId: loseHub ? undefined : a.hubId, routeId: loseRoute ? undefined : a.routeId, status: 'available' as const };
+            }),
+          };
+        }),
 
       addTerminal: (hubId, name) =>
         set((s) => ({
@@ -193,12 +207,15 @@ export const useStore = create<State>()(
                 }
               : h
           ),
-          routes: s.routes.map((r) => {
-            const updates: Partial<Route> = {};
-            if (r.departureGateId === gateId) updates.departureGateId = undefined;
-            if (r.arrivalGateId === gateId) updates.arrivalGateId = undefined;
-            return Object.keys(updates).length ? { ...r, ...updates } : r;
-          }),
+          routes: s.routes.map((r) => ({
+            ...r,
+            flights: r.flights.map((f) => {
+              const updates: Partial<Flight> = {};
+              if (f.departureGateId === gateId) updates.departureGateId = undefined;
+              if (f.arrivalGateId === gateId) updates.arrivalGateId = undefined;
+              return Object.keys(updates).length ? { ...f, ...updates } : f;
+            }),
+          })),
         })),
 
       addAircraft: (a) =>
@@ -212,18 +229,21 @@ export const useStore = create<State>()(
       deleteAircraft: (id) =>
         set((s) => ({
           aircraft: s.aircraft.filter((a) => a.id !== id),
-          routes: s.routes.map((r) => (r.aircraftId === id ? { ...r, aircraftId: undefined } : r)),
+          routes: s.routes.map((r) => ({
+            ...r,
+            flights: r.flights.map((f) => (f.aircraftId === id ? { ...f, aircraftId: undefined } : f)),
+          })),
         })),
 
       assignAircraftToHub: (aircraftId, hubId) =>
         set((s) => ({
           aircraft: s.aircraft.map((a) =>
-            a.id === aircraftId ? { ...a, hubId, status: 'available' as const } : a
+            a.id === aircraftId ? { ...a, hubId: hubId || undefined, status: 'available' as const } : a
           ),
         })),
 
       addRoute: (r) =>
-        set((s) => ({ routes: [...s.routes, { ...r, id: uuid() }] })),
+        set((s) => ({ routes: [...s.routes, { ...r, id: uuid(), flights: [] }] })),
 
       updateRoute: (id, data) =>
         set((s) => ({
@@ -233,20 +253,49 @@ export const useStore = create<State>()(
       deleteRoute: (id) =>
         set((s) => {
           const route = s.routes.find((r) => r.id === id);
+          const flightIds = new Set(route?.flights.map((f) => f.id) ?? []);
           return {
             routes: s.routes.filter((r) => r.id !== id),
-            aircraft: route?.aircraftId
+            aircraft: s.aircraft.map((a) =>
+              a.routeId && flightIds.has(a.routeId)
+                ? { ...a, routeId: undefined, status: 'available' as const }
+                : a
+            ),
+            hubs: s.hubs.map((h) => ({
+              ...h,
+              terminals: h.terminals.map((t) => ({
+                ...t,
+                gates: t.gates.map((g) =>
+                  g.routeId && flightIds.has(g.routeId) ? { ...g, routeId: undefined } : g
+                ),
+              })),
+            })),
+          };
+        }),
+
+      addFlight: (routeId, f) =>
+        set((s) => {
+          const flightId = uuid();
+          return {
+            routes: s.routes.map((r) =>
+              r.id === routeId
+                ? { ...r, flights: [...r.flights, { ...f, id: flightId, routeId }] }
+                : r
+            ),
+            aircraft: f.aircraftId
               ? s.aircraft.map((a) =>
-                  a.id === route.aircraftId ? { ...a, routeId: undefined, status: 'available' as const } : a
+                  a.id === f.aircraftId ? { ...a, routeId: flightId, status: 'assigned' as const } : a
                 )
               : s.aircraft,
-            hubs: route
+            hubs: f.departureGateId || f.arrivalGateId
               ? s.hubs.map((h) => ({
                   ...h,
                   terminals: h.terminals.map((t) => ({
                     ...t,
                     gates: t.gates.map((g) =>
-                      g.routeId === id ? { ...g, routeId: undefined } : g
+                      g.id === f.departureGateId || g.id === f.arrivalGateId
+                        ? { ...g, routeId: flightId }
+                        : g
                     ),
                   })),
                 }))
@@ -254,38 +303,83 @@ export const useStore = create<State>()(
           };
         }),
 
-      assignAircraftToRoute: (routeId, aircraftId) =>
+      updateFlight: (routeId, flightId, data) =>
+        set((s) => ({
+          routes: s.routes.map((r) =>
+            r.id === routeId
+              ? { ...r, flights: r.flights.map((f) => (f.id === flightId ? { ...f, ...data } : f)) }
+              : r
+          ),
+        })),
+
+      deleteFlight: (routeId, flightId) =>
         set((s) => {
-          const prevRoute = s.routes.find((r) => r.id === routeId);
-          const prevAircraftId = prevRoute?.aircraftId;
+          const route = s.routes.find((r) => r.id === routeId);
+          const flight = route?.flights.find((f) => f.id === flightId);
           return {
-            routes: s.routes.map((r) => (r.id === routeId ? { ...r, aircraftId } : r)),
+            routes: s.routes.map((r) =>
+              r.id === routeId
+                ? { ...r, flights: r.flights.filter((f) => f.id !== flightId) }
+                : r
+            ),
+            aircraft: flight?.aircraftId
+              ? s.aircraft.map((a) =>
+                  a.id === flight.aircraftId ? { ...a, routeId: undefined, status: 'available' as const } : a
+                )
+              : s.aircraft,
+            hubs: flight
+              ? s.hubs.map((h) => ({
+                  ...h,
+                  terminals: h.terminals.map((t) => ({
+                    ...t,
+                    gates: t.gates.map((g) =>
+                      g.routeId === flightId ? { ...g, routeId: undefined } : g
+                    ),
+                  })),
+                }))
+              : s.hubs,
+          };
+        }),
+
+      assignAircraftToFlight: (routeId, flightId, aircraftId) =>
+        set((s) => {
+          const route = s.routes.find((r) => r.id === routeId);
+          const prevAircraftId = route?.flights.find((f) => f.id === flightId)?.aircraftId;
+          return {
+            routes: s.routes.map((r) =>
+              r.id === routeId
+                ? { ...r, flights: r.flights.map((f) => (f.id === flightId ? { ...f, aircraftId } : f)) }
+                : r
+            ),
             aircraft: s.aircraft.map((a) => {
-              if (a.id === prevAircraftId) return { ...a, routeId: undefined, status: 'available' as const };
-              if (a.id === aircraftId) return { ...a, routeId, status: 'assigned' as const };
+              if (prevAircraftId !== aircraftId && a.id === prevAircraftId)
+                return { ...a, routeId: undefined, status: 'available' as const };
+              if (a.id === aircraftId)
+                return { ...a, routeId: flightId, status: 'assigned' as const };
               return a;
             }),
           };
         }),
 
-      assignGatesToRoute: (routeId, departureGateId, arrivalGateId) =>
+      assignGatesToFlight: (routeId, flightId, departureGateId, arrivalGateId) =>
         set((s) => {
-          const prevRoute = s.routes.find((r) => r.id === routeId);
+          const route = s.routes.find((r) => r.id === routeId);
+          const prevFlight = route?.flights.find((f) => f.id === flightId);
           return {
             routes: s.routes.map((r) =>
-              r.id === routeId ? { ...r, departureGateId, arrivalGateId } : r
+              r.id === routeId
+                ? { ...r, flights: r.flights.map((f) => (f.id === flightId ? { ...f, departureGateId, arrivalGateId } : f)) }
+                : r
             ),
             hubs: s.hubs.map((h) => ({
               ...h,
               terminals: h.terminals.map((t) => ({
                 ...t,
                 gates: t.gates.map((g) => {
-                  if (g.id === prevRoute?.departureGateId || g.id === prevRoute?.arrivalGateId) {
-                    return { ...g, routeId: undefined };
-                  }
-                  if (g.id === departureGateId || g.id === arrivalGateId) {
-                    return { ...g, routeId };
-                  }
+                  const wasAssigned = g.id === prevFlight?.departureGateId || g.id === prevFlight?.arrivalGateId;
+                  const willBeAssigned = g.id === departureGateId || g.id === arrivalGateId;
+                  if (wasAssigned && !willBeAssigned) return { ...g, routeId: undefined };
+                  if (willBeAssigned) return { ...g, routeId: flightId };
                   return g;
                 }),
               })),
@@ -295,12 +389,12 @@ export const useStore = create<State>()(
     }),
     {
       name: 'oceanic-manager',
-      version: 2,
+      version: 3,
       migrate: (persisted: any, version: number) => {
         let state = persisted;
 
         if (version < 1) {
-          // Migrate slots → gates on terminals, and slot IDs → gate IDs on routes
+          // Migrate slots → gates
           state = {
             ...state,
             hubs: (state.hubs ?? []).map((h: any) => ({
@@ -308,9 +402,7 @@ export const useStore = create<State>()(
               terminals: (h.terminals ?? []).map((t: any) => ({
                 ...t,
                 gates: t.gates ?? (t.slots ?? []).map((s: any) => ({
-                  id: s.id,
-                  terminalId: t.id,
-                  hubId: h.id,
+                  id: s.id, terminalId: t.id, hubId: h.id,
                   name: s.name ?? s.type ?? 'Gate',
                 })),
               })),
@@ -324,9 +416,53 @@ export const useStore = create<State>()(
         }
 
         if (version < 2) {
-          // aircraftTypes are no longer persisted; drop stale copy so fresh defaults load
           const { aircraftTypes: _drop, ...rest } = state;
           state = rest;
+        }
+
+        if (version < 3) {
+          // Migrate flat Route → Route with flights[]
+          // Build mapping: old route id → new flight id
+          const routeToFlightId: Record<string, string> = {};
+          const newRoutes = (state.routes ?? []).map((r: any) => {
+            if (Array.isArray(r.flights)) return r; // already migrated
+            const flightId = uuid();
+            routeToFlightId[r.id] = flightId;
+            return {
+              id: r.id,
+              originHubId: r.originHubId,
+              destinationHubId: r.destinationHubId,
+              distanceKm: r.distanceKm ?? 0,
+              flights: r.flightNumber
+                ? [{
+                    id: flightId,
+                    routeId: r.id,
+                    flightNumber: r.flightNumber,
+                    aircraftId: r.aircraftId,
+                    departureGateId: r.departureGateId,
+                    arrivalGateId: r.arrivalGateId,
+                    status: r.status ?? 'planned',
+                    daysOfOperation: r.daysOfOperation ?? [],
+                  }]
+                : [],
+            };
+          });
+          // Remap aircraft.routeId and gate.routeId from old route id → new flight id
+          const newAircraft = (state.aircraft ?? []).map((a: any) => ({
+            ...a,
+            routeId: a.routeId ? (routeToFlightId[a.routeId] ?? a.routeId) : undefined,
+          }));
+          const newHubs = (state.hubs ?? []).map((h: any) => ({
+            ...h,
+            terminals: (h.terminals ?? []).map((t: any) => ({
+              ...t,
+              gates: (t.gates ?? []).map((g: any) => ({
+                ...g,
+                routeId: g.routeId ? (routeToFlightId[g.routeId] ?? g.routeId) : undefined,
+              })),
+            })),
+          }));
+          state = { ...state, routes: newRoutes, aircraft: newAircraft, hubs: newHubs };
         }
 
         return state;
