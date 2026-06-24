@@ -48,7 +48,10 @@ export default function Layout() {
         </nav>
         <div style={{ padding: '12px 16px', borderTop: '1px solid #334155', fontSize: 12, color: '#475569' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span>Hubs</span><span style={{ color: '#94a3b8' }}>{hubs.length}</span>
+            <span>Hubs</span><span style={{ color: '#94a3b8' }}>{hubs.filter((h) => !h.isRouteAirport).length}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span>Airports</span><span style={{ color: '#94a3b8' }}>{hubs.filter((h) => h.isRouteAirport).length}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
             <span>Aircraft</span><span style={{ color: '#94a3b8' }}>{aircraft.length}</span>
