@@ -13,7 +13,7 @@ const TIMEZONES = [
 ];
 
 type HubForm = Omit<Hub, 'id' | 'terminals'>;
-const emptyHub = (): HubForm => ({ name: '', iata: '', icao: '', city: '', country: '', timezone: 'UTC' });
+const emptyHub = (): HubForm => ({ name: '', iata: '', icao: '', city: '', country: '', timezone: 'UTC', lat: undefined, lon: undefined });
 
 export default function Hubs() {
   const { hubs, addHub, updateHub, deleteHub, addTerminal, deleteTerminal, addGate, updateGate, deleteGate } = useStore();
