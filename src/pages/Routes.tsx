@@ -32,10 +32,33 @@ export default function Routes() {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [routeForm, setRouteForm] = useState<RouteForm>(emptyRoute());
   const [flightForm, setFlightForm] = useState<FlightForm>(emptyFlight());
+  const [originCode, setOriginCode] = useState('');
+  const [destCode, setDestCode] = useState('');
 
-  const openAddRoute = () => { setRouteForm(emptyRoute()); setEditingRoute(null); setRouteModal('add'); };
+  const findHub = (code: string) => {
+    const u = code.trim().toUpperCase();
+    return hubs.find((h) => h.icao.toUpperCase() === u || h.iata.toUpperCase() === u);
+  };
+
+  const handleOriginCode = (val: string) => {
+    setOriginCode(val);
+    setRouteForm((p) => ({ ...p, originHubId: findHub(val)?.id ?? '' }));
+  };
+  const handleDestCode = (val: string) => {
+    setDestCode(val);
+    setRouteForm((p) => ({ ...p, destinationHubId: findHub(val)?.id ?? '' }));
+  };
+
+  const openAddRoute = () => {
+    setRouteForm(emptyRoute()); setOriginCode(''); setDestCode('');
+    setEditingRoute(null); setRouteModal('add');
+  };
   const openEditRoute = (r: Route) => {
     setEditingRoute(r);
+    const orig = hubs.find((h) => h.id === r.originHubId);
+    const dst = hubs.find((h) => h.id === r.destinationHubId);
+    setOriginCode(orig?.icao ?? orig?.iata ?? '');
+    setDestCode(dst?.icao ?? dst?.iata ?? '');
     setRouteForm({ originHubId: r.originHubId, destinationHubId: r.destinationHubId, distanceKm: r.distanceKm });
     setRouteModal('edit');
   };
