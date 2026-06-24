@@ -65,7 +65,7 @@ export default function Hubs() {
         <Btn onClick={openAdd}>+ Add Hub</Btn>
       </div>
 
-      {hubs.length === 0 && (
+      {hubs.filter((h) => !h.isRouteAirport).length === 0 && (
         <div style={{ textAlign: 'center', padding: 64, color: '#475569', border: '1px dashed #334155', borderRadius: 12 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🏢</div>
           <p style={{ fontSize: 16, color: '#64748b' }}>No hubs yet. Add your first hub.</p>
