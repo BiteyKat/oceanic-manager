@@ -22,8 +22,8 @@ export default function Dashboard() {
   const activeRoutes = routes.filter((r) => r.status === 'active').length;
   const assignedAc = aircraft.filter((a) => a.status === 'assigned').length;
   const availableAc = aircraft.filter((a) => a.status === 'available').length;
-  const totalSlots = hubs.flatMap((h) => h.terminals.flatMap((t) => t.slots)).length;
-  const assignedSlots = hubs.flatMap((h) => h.terminals.flatMap((t) => t.slots.filter((s) => s.routeId))).length;
+  const totalGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates)).length;
+  const assignedGates = hubs.flatMap((h) => h.terminals.flatMap((t) => t.gates.filter((g) => g.routeId))).length;
 
   const routesByHub = hubs.map((h) => ({
     hub: h,
@@ -41,7 +41,7 @@ export default function Dashboard() {
         <Stat label="Hubs" value={hubs.length} />
         <Stat label="Fleet" value={aircraft.length} sub={`${assignedAc} assigned · ${availableAc} available`} />
         <Stat label="Routes" value={routes.length} sub={`${activeRoutes} active`} />
-        <Stat label="Slots" value={totalSlots} sub={`${assignedSlots} assigned`} />
+        <Stat label="Gates" value={totalGates} sub={`${assignedGates} assigned`} />
         <Stat label="Aircraft Types" value={types.length} />
       </div>
 
