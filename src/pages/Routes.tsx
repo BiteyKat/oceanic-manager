@@ -480,7 +480,7 @@ export default function Routes() {
           </FormField>
           {newHubsNeeded.length > 0 && (
             <div style={{ background: '#0c2a1a', border: '1px solid #166534', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: '#4ade80', marginBottom: 8 }}>
-              <strong>New hubs will be created:</strong>{' '}
+              <strong>New airports will be created:</strong>{' '}
               {newHubsNeeded.map((a) => `${a.iata} – ${a.name}`).join(', ')}
             </div>
           )}
