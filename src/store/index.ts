@@ -144,8 +144,8 @@ export const useStore = create<State>()(
           ),
         })),
 
-      ensureDefaultTerminal: (hubId) => {
-        const hub = useStore.getState().hubs.find((h) => h.id === hubId);
+      ensureDefaultTerminal: (hubId: string): string => {
+        const hub = get().hubs.find((h) => h.id === hubId);
         if (hub?.terminals.length) return hub.terminals[0].id;
         const termId = uuid();
         set((s) => ({
