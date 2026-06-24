@@ -93,7 +93,7 @@ export default function Fleet() {
               {displayed.map((ac) => {
                 const type = aircraftTypes.find((t) => t.id === ac.typeId);
                 const hub = hubs.find((h) => h.id === ac.hubId);
-                const route = routes.find((r) => r.id === ac.routeId);
+                const flight = ac.routeId ? routes.flatMap((r) => r.flights).find((f) => f.id === ac.routeId) : undefined;
                 const sc = STATUS_COLORS[ac.status];
                 return (
                   <tr key={ac.id} style={{ borderBottom: '1px solid #1e293b' }}>
