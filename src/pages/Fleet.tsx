@@ -203,6 +203,62 @@ export default function Fleet() {
         </Modal>
       )}
 
+      {modal === 'bulk' && (
+        <Modal title="Bulk Add Aircraft" onClose={() => setModal(null)} width={480}>
+          <FormField label="Aircraft Type" required>
+            <Select value={bulkForm.typeId} onChange={(e) => setBulkForm((p) => ({ ...p, typeId: e.target.value }))}>
+              <option value="">Select type…</option>
+              {['narrowbody', 'widebody', 'regional', 'turboprop'].map((cat) => (
+                <optgroup key={cat} label={cat.charAt(0).toUpperCase() + cat.slice(1)}>
+                  {aircraftTypes.filter((t) => t.category === cat).map((t) => (
+                    <option key={t.id} value={t.id}>{t.manufacturer} {t.model} · {t.paxCapacity} pax · {t.rangeKm.toLocaleString()} km</option>
+                  ))}
+                </optgroup>
+              ))}
+            </Select>
+          </FormField>
+          <FormRow>
+            <FormField label="Status">
+              <Select value={bulkForm.status} onChange={(e) => setBulkForm((p) => ({ ...p, status: e.target.value as Aircraft['status'] }))}>
+                <option value="available">Available</option>
+                <option value="maintenance">Maintenance</option>
+              </Select>
+            </FormField>
+            <FormField label="Base Hub">
+              <Select value={bulkForm.hubId} onChange={(e) => setBulkForm((p) => ({ ...p, hubId: e.target.value }))}>
+                <option value="">No hub assigned</option>
+                {hubs.map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
+              </Select>
+            </FormField>
+          </FormRow>
+          <FormField label="Registrations" hint="One per line — e.g. G-TUIC">
+            <textarea
+              value={bulkForm.registrations}
+              onChange={(e) => setBulkForm((p) => ({ ...p, registrations: e.target.value }))}
+              placeholder={'G-TUIC\nG-ABCD\nG-XYZW'}
+              rows={6}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: '#0f172a', border: '1px solid #334155', borderRadius: 6,
+                color: '#e2e8f0', fontSize: 13, padding: '8px 10px',
+                fontFamily: 'monospace', resize: 'vertical', outline: 'none',
+              }}
+            />
+          </FormField>
+          {bulkRegs.length > 0 && (
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: -8, marginBottom: 8 }}>
+              {bulkRegs.length} aircraft will be added
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+            <Btn variant="ghost" onClick={() => setModal(null)}>Cancel</Btn>
+            <Btn onClick={saveBulk} disabled={!bulkForm.typeId || bulkRegs.length === 0}>
+              Add {bulkRegs.length > 0 ? bulkRegs.length : ''} Aircraft
+            </Btn>
+          </div>
+        </Modal>
+      )}
+
       {modal === 'assign' && editing && (
         <Modal title="Assign to Hub" onClose={() => setModal(null)} width={380}>
           <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 16 }}>
