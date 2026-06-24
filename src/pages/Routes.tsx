@@ -582,7 +582,7 @@ export default function Routes() {
           )}
           {arrGates.length === 0 && flightDestHub && (
             <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
-              No gates available at {flightDestHub.iata}. Add gates in the Hubs page.
+              No gates available at {flightDestHub.iata}. Add gates in the Airports or Hubs page.
             </p>
           )}
 
