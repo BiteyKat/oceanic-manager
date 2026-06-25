@@ -14,6 +14,8 @@ export default function Layout() {
   const hubs = useStore((s) => s.hubs);
   const aircraft = useStore((s) => s.aircraft);
   const routes = useStore((s) => s.routes);
+  const syncStatus = useStore((s) => s.syncStatus);
+  const syncError = useStore((s) => s.syncError);
   const { user, signOut } = useAuth();
 
   return (
