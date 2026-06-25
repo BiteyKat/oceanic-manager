@@ -1554,8 +1554,8 @@ const RAW: [string, string, string, string, string, number, number, string][] = 
 const byIata = new Map<string, AirportRecord>();
 const byIcao = new Map<string, AirportRecord>();
 
-for (const [iata, icao, name, city, country, lat, lon] of RAW) {
-  const r: AirportRecord = { iata, icao, name, city, country, lat, lon };
+for (const [iata, icao, name, city, country, lat, lon, timezone] of RAW) {
+  const r: AirportRecord = { iata, icao, name, city, country, lat, lon, timezone };
   if (!byIata.has(iata)) byIata.set(iata, r);
   if (icao && !byIcao.has(icao)) byIcao.set(icao, r);
 }
@@ -1572,18 +1572,18 @@ export function searchAirports(query: string, limit = 10): AirportRecord[] {
   const seen = new Set<string>();
 
   // Exact IATA/ICAO prefix first
-  for (const [iata, icao, name, city, country, lat, lon] of RAW) {
+  for (const [iata, icao, name, city, country, lat, lon, timezone] of RAW) {
     if (seen.has(iata)) continue;
     if (iata.startsWith(q) || icao.startsWith(q)) {
       seen.add(iata);
-      results.push({ iata, icao, name, city, country, lat, lon });
+      results.push({ iata, icao, name, city, country, lat, lon, timezone });
       if (results.length >= limit) return results;
     }
   }
 
   // Then name/city partial match
   const ql = query.trim().toLowerCase();
-  for (const [iata, icao, name, city, country, lat, lon] of RAW) {
+  for (const [iata, icao, name, city, country, lat, lon, timezone] of RAW) {
     if (seen.has(iata)) continue;
     if (
       name.toLowerCase().includes(ql) ||
@@ -1591,7 +1591,7 @@ export function searchAirports(query: string, limit = 10): AirportRecord[] {
       country.toLowerCase().includes(ql)
     ) {
       seen.add(iata);
-      results.push({ iata, icao, name, city, country, lat, lon });
+      results.push({ iata, icao, name, city, country, lat, lon, timezone });
       if (results.length >= limit) return results;
     }
   }
