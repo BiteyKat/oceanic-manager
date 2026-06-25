@@ -14,6 +14,7 @@ export default function Layout() {
   const hubs = useStore((s) => s.hubs);
   const aircraft = useStore((s) => s.aircraft);
   const routes = useStore((s) => s.routes);
+  const { user, signOut } = useAuth();
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
