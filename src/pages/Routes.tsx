@@ -300,9 +300,24 @@ export default function Routes() {
   const flightOriginHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.originHubId) : null;
   const flightDestHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.destinationHubId) : null;
 
-  const availableAc = aircraft.filter((a) =>
-    a.status === 'available' || (flightModal?.flight && a.id === flightModal.flight.aircraftId)
+  const draftFlight = {
+    daysOfOperation: flightForm.daysOfOperation,
+    departureTime: flightForm.departureTime,
+    arrivalTime: flightForm.arrivalTime,
+  };
+  const allFlights = routes.flatMap((r) => r.flights);
+  const conflictingAcIds = new Set(
+    aircraft
+      .filter((a) => a.status !== 'maintenance')
+      .filter((a) => {
+        const acFlights = allFlights.filter(
+          (f) => f.aircraftId === a.id && f.id !== flightModal?.flight?.id
+        );
+        return acFlights.some((f) => flightsConflict(draftFlight, f));
+      })
+      .map((a) => a.id)
   );
+  const availableAc = aircraft.filter((a) => a.status !== 'maintenance');
 
   const depGates = flightOriginHub?.terminals.flatMap((t) =>
     t.gates
