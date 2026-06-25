@@ -427,6 +427,16 @@ export default function Routes() {
                                   {arrGateInfo ? `${arrGateInfo.name} – ${arrGateInfo.terminalName}` : 'No gate'}
                                 </span>
                               </span>
+                              {(flight.departureTime || flight.arrivalTime) && (
+                                <>
+                                  <span style={{ color: '#334155' }}>·</span>
+                                  <span style={{ color: '#64748b' }}>
+                                    {flight.departureTime && <span style={{ color: '#94a3b8' }}>{flight.departureTime}</span>}
+                                    {flight.departureTime && flight.arrivalTime && <span style={{ color: '#475569' }}> → </span>}
+                                    {flight.arrivalTime && <span style={{ color: '#94a3b8' }}>{flight.arrivalTime}</span>}
+                                  </span>
+                                </>
+                              )}
                             </div>
                             <div style={{ display: 'flex', gap: 3 }}>
                               {DAYS.map((d, i) => (
