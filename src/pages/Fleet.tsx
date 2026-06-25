@@ -138,7 +138,11 @@ export default function Fleet() {
                     <td style={{ padding: '10px 14px', fontSize: 13, color: '#94a3b8' }}>
                       {hub ? <span style={{ color: '#38bdf8', fontWeight: 600 }}>{hub.iata}</span> : <span style={{ color: '#475569' }}>—</span>}
                     </td>
-                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#94a3b8' }}>{flight?.flightNumber ?? '—'}</td>
+                    <td style={{ padding: '10px 14px', fontSize: 13, color: '#94a3b8' }}>
+                      {assignedFlights.length === 0 ? '—'
+                        : assignedFlights.length === 1 ? assignedFlights[0].flightNumber
+                        : <span title={assignedFlights.map((f) => f.flightNumber).join(', ')}>{assignedFlights.length} flights</span>}
+                    </td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.color }}>
                         {ac.status}
