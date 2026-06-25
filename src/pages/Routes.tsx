@@ -632,7 +632,10 @@ export default function Routes() {
                 onChange={(e) => setFlightForm((p) => ({ ...p, departureGateId: e.target.value || undefined }))}
               >
                 <option value="">No gate</option>
-                {depGates.map((g) => <option key={g.id} value={g.id}>{g.name} – {g.terminalName}</option>)}
+                {depGates.map((g) => {
+                  const conflict = conflictingGateIds.has(g.id);
+                  return <option key={g.id} value={g.id} disabled={conflict}>{conflict ? '⚠ ' : ''}{g.name} – {g.terminalName}{conflict ? ' – schedule conflict' : ''}</option>;
+                })}
               </Select>
             </FormField>
             <FormField label={`Arrival Gate (${flightDestHub?.iata ?? '?'})`}>
@@ -641,7 +644,10 @@ export default function Routes() {
                 onChange={(e) => setFlightForm((p) => ({ ...p, arrivalGateId: e.target.value || undefined }))}
               >
                 <option value="">No gate</option>
-                {arrGates.map((g) => <option key={g.id} value={g.id}>{g.name} – {g.terminalName}</option>)}
+                {arrGates.map((g) => {
+                  const conflict = conflictingGateIds.has(g.id);
+                  return <option key={g.id} value={g.id} disabled={conflict}>{conflict ? '⚠ ' : ''}{g.name} – {g.terminalName}{conflict ? ' – schedule conflict' : ''}</option>;
+                })}
               </Select>
             </FormField>
           </FormRow>
