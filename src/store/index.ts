@@ -117,6 +117,10 @@ export const useStore = create<State>()(
       aircraftTypes: DEFAULT_AIRCRAFT_TYPES,
       routes: [],
 
+      syncStatus: 'idle',
+      syncError: null,
+      setSyncStatus: (status, error = null) => set({ syncStatus: status, syncError: error ?? null }),
+
       loadState: (data) =>
         set({ hubs: data.hubs, aircraft: data.aircraft, routes: data.routes }),
 
