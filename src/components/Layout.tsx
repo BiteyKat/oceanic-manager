@@ -61,6 +61,23 @@ export default function Layout() {
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Routes</span><span style={{ color: '#94a3b8' }}>{routes.length}</span>
           </div>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #1e293b' }}>
+            <div style={{ color: '#475569', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {user?.email}
+            </div>
+            <button
+              onClick={signOut}
+              style={{
+                width: '100%', padding: '6px 0', background: 'transparent',
+                border: '1px solid #334155', borderRadius: 6, color: '#64748b',
+                fontSize: 12, cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.color = '#e2e8f0'; (e.target as HTMLButtonElement).style.borderColor = '#475569'; }}
+              onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.color = '#64748b'; (e.target as HTMLButtonElement).style.borderColor = '#334155'; }}
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </aside>
       <main style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
