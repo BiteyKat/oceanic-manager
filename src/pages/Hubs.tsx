@@ -203,22 +203,6 @@ export default function Hubs() {
               <Input placeholder="e.g. United Kingdom" value={form.country} onChange={f('country')} />
             </FormField>
           </FormRow>
-          <FormRow>
-            <FormField label="Latitude" hint="e.g. 51.4775">
-              <Input
-                type="number" step="0.0001" placeholder="e.g. 51.4775"
-                value={form.lat ?? ''}
-                onChange={(e) => setForm((p) => ({ ...p, lat: e.target.value ? parseFloat(e.target.value) : undefined }))}
-              />
-            </FormField>
-            <FormField label="Longitude" hint="e.g. -0.4614">
-              <Input
-                type="number" step="0.0001" placeholder="e.g. -0.4614"
-                value={form.lon ?? ''}
-                onChange={(e) => setForm((p) => ({ ...p, lon: e.target.value ? parseFloat(e.target.value) : undefined }))}
-              />
-            </FormField>
-          </FormRow>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
             <Btn variant="ghost" onClick={() => setModal(null)}>Cancel</Btn>
             <Btn onClick={saveHub} disabled={!form.name || !form.iata}>Save Hub</Btn>
