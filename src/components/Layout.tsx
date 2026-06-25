@@ -63,7 +63,20 @@ export default function Layout() {
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Routes</span><span style={{ color: '#94a3b8' }}>{routes.length}</span>
           </div>
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #1e293b' }}>
+          <div style={{ marginTop: 8 }}>
+            {syncStatus === 'saving' && (
+              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>⟳ Saving…</div>
+            )}
+            {syncStatus === 'saved' && (
+              <div style={{ fontSize: 11, color: '#22c55e', marginBottom: 6 }}>✓ Saved</div>
+            )}
+            {syncStatus === 'error' && (
+              <div style={{ fontSize: 11, color: '#f87171', marginBottom: 6 }} title={syncError ?? undefined}>
+                ✕ Save failed
+              </div>
+            )}
+          </div>
+          <div style={{ paddingTop: 8, borderTop: '1px solid #1e293b' }}>
             <div style={{ color: '#475569', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user?.email}
             </div>
