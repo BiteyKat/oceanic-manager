@@ -20,7 +20,7 @@ type RouteForm = Omit<Route, 'id' | 'flights'>;
 type FlightForm = Omit<Flight, 'id' | 'routeId'>;
 
 const emptyRoute = (): RouteForm => ({ originHubId: '', destinationHubId: '', distanceKm: 0 });
-const emptyFlight = (): FlightForm => ({ flightNumber: '', status: 'planned', daysOfOperation: [1, 2, 3, 4, 5] });
+const emptyFlight = (): FlightForm => ({ flightNumber: '', status: 'planned', daysOfOperation: [1, 2, 3, 4, 5], departureTime: '', arrivalTime: '' });
 
 const STATUS_COLORS: Record<RouteStatus, { bg: string; color: string }> = {
   active: { bg: '#14532d', color: '#4ade80' },
