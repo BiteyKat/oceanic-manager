@@ -108,7 +108,7 @@ function AirportInput({
                 <span style={{ fontSize: 12, color: '#64748b', minWidth: 40 }}>{a.icao}</span>
                 <div style={{ flex: 1, overflow: 'hidden' }}>
                   <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.name}</div>
-                  <div style={{ fontSize: 11, color: '#64748b' }}>{a.city}, {a.country}</div>
+                  <div style={{ fontSize: 11, color: '#64748b' }}>{a.city}, {a.country} · <span style={{ color: '#475569' }}>{a.timezone}</span></div>
                 </div>
               </div>
             ))}
