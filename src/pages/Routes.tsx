@@ -609,9 +609,10 @@ export default function Routes() {
               <option value="">No aircraft</option>
               {availableAc.map((a) => {
                 const t = aircraftTypes.find((x) => x.id === a.typeId);
+                const conflict = conflictingAcIds.has(a.id);
                 return (
-                  <option key={a.id} value={a.id}>
-                    {a.registration}{a.name ? ` – ${a.name}` : ''} ({t?.model ?? '?'})
+                  <option key={a.id} value={a.id} disabled={conflict}>
+                    {conflict ? '⚠ ' : ''}{a.registration}{a.name ? ` – ${a.name}` : ''} ({t?.model ?? '?'}){conflict ? ' – schedule conflict' : ''}
                   </option>
                 );
               })}
