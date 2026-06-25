@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useStore } from '../store';
+import { useAuth } from '../lib/auth';
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: '▦' },
