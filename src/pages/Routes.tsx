@@ -528,6 +528,23 @@ export default function Routes() {
             </FormField>
           </FormRow>
 
+          <FormRow>
+            <FormField label={`Departure Time (${flightOriginHub?.timezone ?? 'local'})`}>
+              <Input
+                type="time"
+                value={flightForm.departureTime ?? ''}
+                onChange={(e) => setFlightForm((p) => ({ ...p, departureTime: e.target.value }))}
+              />
+            </FormField>
+            <FormField label={`Arrival Time (${flightDestHub?.timezone ?? 'local'})`}>
+              <Input
+                type="time"
+                value={flightForm.arrivalTime ?? ''}
+                onChange={(e) => setFlightForm((p) => ({ ...p, arrivalTime: e.target.value }))}
+              />
+            </FormField>
+          </FormRow>
+
           <FormField label="Days of Operation">
             <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
               {DAYS.map((d, i) => (
