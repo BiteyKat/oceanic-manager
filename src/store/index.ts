@@ -66,6 +66,11 @@ interface State {
   aircraftTypes: AircraftType[];
   routes: Route[];
 
+  // Sync status (not persisted)
+  syncStatus: 'idle' | 'saving' | 'saved' | 'error';
+  syncError: string | null;
+  setSyncStatus: (status: 'idle' | 'saving' | 'saved' | 'error', error?: string | null) => void;
+
   // Sync
   loadState: (data: { hubs: Hub[]; aircraft: Aircraft[]; routes: Route[] }) => void;
 
