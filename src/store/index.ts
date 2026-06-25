@@ -380,15 +380,20 @@ export const useStore = create<State>()(
         set((s) => {
           const route = s.routes.find((r) => r.id === routeId);
           const prevAircraftId = route?.flights.find((f) => f.id === flightId)?.aircraftId;
+          const updatedRoutes = s.routes.map((r) =>
+            r.id === routeId
+              ? { ...r, flights: r.flights.map((f) => (f.id === flightId ? { ...f, aircraftId } : f)) }
+              : r
+          );
           return {
-            routes: s.routes.map((r) =>
-              r.id === routeId
-                ? { ...r, flights: r.flights.map((f) => (f.id === flightId ? { ...f, aircraftId } : f)) }
-                : r
-            ),
+            routes: updatedRoutes,
             aircraft: s.aircraft.map((a) => {
-              if (prevAircraftId !== aircraftId && a.id === prevAircraftId)
-                return { ...a, routeId: undefined, status: 'available' as const };
+              if (prevAircraftId !== aircraftId && a.id === prevAircraftId) {
+                const remaining = updatedRoutes.flatMap((r) => r.flights).find((f) => f.aircraftId === prevAircraftId);
+                return remaining
+                  ? { ...a, routeId: remaining.id }
+                  : { ...a, routeId: undefined, status: 'available' as const };
+              }
               if (a.id === aircraftId)
                 return { ...a, routeId: flightId, status: 'assigned' as const };
               return a;
