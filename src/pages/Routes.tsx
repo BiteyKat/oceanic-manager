@@ -22,6 +22,24 @@ type FlightForm = Omit<Flight, 'id' | 'routeId'>;
 const emptyRoute = (): RouteForm => ({ originHubId: '', destinationHubId: '', distanceKm: 0 });
 const emptyFlight = (): FlightForm => ({ flightNumber: '', status: 'planned', daysOfOperation: [1, 2, 3, 4, 5], departureTime: '', arrivalTime: '' });
 
+function timeToMins(t: string): number {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function flightsConflict(
+  a: { daysOfOperation: number[]; departureTime?: string; arrivalTime?: string },
+  b: { daysOfOperation: number[]; departureTime?: string; arrivalTime?: string }
+): boolean {
+  if (!a.daysOfOperation.some((d) => b.daysOfOperation.includes(d))) return false;
+  if (!a.departureTime || !a.arrivalTime || !b.departureTime || !b.arrivalTime) return false;
+  const aS = timeToMins(a.departureTime), aE = timeToMins(a.arrivalTime);
+  const bS = timeToMins(b.departureTime), bE = timeToMins(b.arrivalTime);
+  const aEadj = aE <= aS ? aE + 1440 : aE;
+  const bEadj = bE <= bS ? bE + 1440 : bE;
+  return aS < bEadj && bS < aEadj;
+}
+
 const STATUS_COLORS: Record<RouteStatus, { bg: string; color: string }> = {
   active: { bg: '#14532d', color: '#4ade80' },
   planned: { bg: '#1e3a5f', color: '#60a5fa' },
