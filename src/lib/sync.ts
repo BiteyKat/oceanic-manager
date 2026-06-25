@@ -27,14 +27,21 @@ export async function loadUserData(userId: string): Promise<AppData | null> {
   };
 }
 
-export async function saveUserData(userId: string, data: AppData): Promise<void> {
-  const { error } = await supabase.from('app_state').upsert({
-    user_id: userId,
-    hubs: data.hubs,
-    aircraft: data.aircraft,
-    routes: data.routes,
-    updated_at: new Date().toISOString(),
-  });
+export async function saveUserData(userId: string, data: AppData): Promise<string | null> {
+  const { error } = await supabase.from('app_state').upsert(
+    {
+      user_id: userId,
+      hubs: data.hubs,
+      aircraft: data.aircraft,
+      routes: data.routes,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
 
-  if (error) console.error('Supabase save error:', error);
+  if (error) {
+    console.error('Supabase save error:', error);
+    return error.message;
+  }
+  return null;
 }
