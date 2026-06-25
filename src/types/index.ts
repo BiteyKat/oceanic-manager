@@ -59,6 +59,8 @@ export interface Flight {
   arrivalGateId?: string;
   status: RouteStatus;
   daysOfOperation: number[]; // 0=Sun … 6=Sat
+  departureTime?: string; // HH:MM local time
+  arrivalTime?: string;   // HH:MM local time
 }
 
 export interface Route {
