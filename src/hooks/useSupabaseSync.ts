@@ -4,8 +4,9 @@ import { loadUserData, saveUserData } from '../lib/sync';
 
 export function useSupabaseSync(userId: string | undefined) {
   const loadState = useStore((s) => s.loadState);
+  const setSyncStatus = useStore((s) => s.setSyncStatus);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const readyRef = useRef(false); // true after initial load, so saves don't fire during load
+  const readyRef = useRef(false);
 
   useEffect(() => {
     readyRef.current = false;
@@ -20,9 +21,12 @@ export function useSupabaseSync(userId: string | undefined) {
       if (remote) {
         loadState(remote);
       } else {
-        // First login: push whatever is already in the store (migrates localStorage data)
+        // First login: push whatever is already in the store
         const s = useStore.getState();
-        await saveUserData(userId, { hubs: s.hubs, aircraft: s.aircraft, routes: s.routes });
+        setSyncStatus('saving');
+        const err = await saveUserData(userId, { hubs: s.hubs, aircraft: s.aircraft, routes: s.routes });
+        if (err) setSyncStatus('error', err);
+        else setSyncStatus('saved');
       }
       readyRef.current = true;
     };
@@ -37,8 +41,11 @@ export function useSupabaseSync(userId: string | undefined) {
     const unsubscribe = useStore.subscribe((state) => {
       if (!readyRef.current) return;
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        saveUserData(userId, { hubs: state.hubs, aircraft: state.aircraft, routes: state.routes });
+      setSyncStatus('saving');
+      saveTimerRef.current = setTimeout(async () => {
+        const err = await saveUserData(userId, { hubs: state.hubs, aircraft: state.aircraft, routes: state.routes });
+        if (err) setSyncStatus('error', err);
+        else setSyncStatus('saved');
       }, 1500);
     });
 
