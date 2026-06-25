@@ -263,6 +263,8 @@ export default function Routes() {
       aircraftId: flight.aircraftId,
       departureGateId: flight.departureGateId,
       arrivalGateId: flight.arrivalGateId,
+      departureTime: flight.departureTime ?? '',
+      arrivalTime: flight.arrivalTime ?? '',
     });
   };
 
