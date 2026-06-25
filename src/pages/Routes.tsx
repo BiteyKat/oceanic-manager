@@ -338,16 +338,22 @@ export default function Routes() {
   const availableAc = aircraft.filter((a) => a.status !== 'maintenance');
 
   const depGates = flightOriginHub?.terminals.flatMap((t) =>
-    t.gates
-      .filter((g) => !g.routeId || g.routeId === flightModal?.flight?.id)
-      .map((g) => ({ ...g, terminalName: t.name }))
+    t.gates.map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
 
   const arrGates = flightDestHub?.terminals.flatMap((t) =>
-    t.gates
-      .filter((g) => !g.routeId || g.routeId === flightModal?.flight?.id)
-      .map((g) => ({ ...g, terminalName: t.name }))
+    t.gates.map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
+
+  const conflictingGateIds = new Set(
+    [...depGates, ...arrGates]
+      .filter((g) => {
+        if (!g.routeId || g.routeId === flightModal?.flight?.id) return false;
+        const occupyingFlight = allFlights.find((f) => f.id === g.routeId);
+        return occupyingFlight ? flightsConflict(draftFlight, occupyingFlight) : false;
+      })
+      .map((g) => g.id)
+  );
 
   const newHubsNeeded = routeModal ? [
     originAirport && !resolveHub(originAirport) ? originAirport : null,
