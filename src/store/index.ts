@@ -498,7 +498,7 @@ export const useStore = create<State>()(
         return state;
       },
       partialize: (s) => {
-        const { aircraftTypes: _omit, ...rest } = s;
+        const { aircraftTypes: _omit, syncStatus: _s, syncError: _e, setSyncStatus: _ss, ...rest } = s;
         return rest as typeof s;
       },
     }
