@@ -38,8 +38,16 @@ export function useSupabaseSync(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    const unsubscribe = useStore.subscribe((state) => {
+    const unsubscribe = useStore.subscribe((state, prevState) => {
       if (!readyRef.current) return;
+      // Guard: only save when actual data changes, not when sync metadata changes.
+      // Without this, setSyncStatus triggers subscribe again → infinite loop.
+      if (
+        state.hubs === prevState.hubs &&
+        state.aircraft === prevState.aircraft &&
+        state.routes === prevState.routes
+      ) return;
+
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       setSyncStatus('saving');
       saveTimerRef.current = setTimeout(async () => {
