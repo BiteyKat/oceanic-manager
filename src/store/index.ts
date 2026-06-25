@@ -66,6 +66,9 @@ interface State {
   aircraftTypes: AircraftType[];
   routes: Route[];
 
+  // Sync
+  loadState: (data: { hubs: Hub[]; aircraft: Aircraft[]; routes: Route[] }) => void;
+
   // Hub actions
   addHub: (hub: Omit<Hub, 'id' | 'terminals'>) => void;
   updateHub: (id: string, data: Partial<Omit<Hub, 'id' | 'terminals'>>) => void;
