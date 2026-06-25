@@ -112,6 +112,9 @@ export const useStore = create<State>()(
       aircraftTypes: DEFAULT_AIRCRAFT_TYPES,
       routes: [],
 
+      loadState: (data) =>
+        set({ hubs: data.hubs, aircraft: data.aircraft, routes: data.routes }),
+
       addHub: (hub) =>
         set((s) => ({
           hubs: [...s.hubs, { ...hub, id: uuid(), terminals: [] }],
