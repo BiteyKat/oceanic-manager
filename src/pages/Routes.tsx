@@ -317,8 +317,12 @@ export default function Routes() {
   };
 
   const flightModalRoute = flightModal ? routes.find((r) => r.id === flightModal.routeId) : null;
-  const flightOriginHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.originHubId) : null;
-  const flightDestHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.destinationHubId) : null;
+  const routeOriginHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.originHubId) : null;
+  const routeDestHub = flightModalRoute ? hubs.find((h) => h.id === flightModalRoute.destinationHubId) : null;
+  const isInbound = flightForm.direction === 'inbound';
+  // Effective departure/arrival hubs based on flight direction
+  const flightOriginHub = isInbound ? routeDestHub : routeOriginHub;
+  const flightDestHub = isInbound ? routeOriginHub : routeDestHub;
 
   const draftFlight = {
     daysOfOperation: flightForm.daysOfOperation,
