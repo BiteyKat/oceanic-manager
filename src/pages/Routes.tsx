@@ -27,6 +27,32 @@ function timeToMins(t: string): number {
   return h * 60 + m;
 }
 
+function hasOvernightLayover(
+  gateId: string,
+  draftDays: number[],
+  allFlights: Flight[],
+  excludeFlightId?: string
+): { arrFlight: Flight; depFlight: Flight } | null {
+  const others = allFlights.filter((f) => f.id !== excludeFlightId);
+  for (const fin of others) {
+    if (fin.arrivalGateId !== gateId || !fin.arrivalTime || !fin.aircraftId) continue;
+    for (const fout of others) {
+      if (fout.departureGateId !== gateId || !fout.departureTime) continue;
+      if (fout.aircraftId !== fin.aircraftId || fout.id === fin.id) continue;
+      const arrT = timeToMins(fin.arrivalTime);
+      const depT = timeToMins(fout.departureTime);
+      if (arrT <= depT) continue; // same-day turnaround, not overnight
+      // Gate is held overnight: fin lands on day D, fout departs day D+1
+      const consecutiveDays = fin.daysOfOperation.some((d) => fout.daysOfOperation.includes((d + 1) % 7));
+      if (!consecutiveDays) continue;
+      if (draftDays.some((d) => fin.daysOfOperation.includes(d) || fout.daysOfOperation.includes(d))) {
+        return { arrFlight: fin, depFlight: fout };
+      }
+    }
+  }
+  return null;
+}
+
 function flightsConflict(
   a: { daysOfOperation: number[]; departureTime?: string; arrivalTime?: string },
   b: { daysOfOperation: number[]; departureTime?: string; arrivalTime?: string }
