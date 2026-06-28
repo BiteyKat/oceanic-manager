@@ -694,10 +694,18 @@ export default function Routes() {
                       return b.arrivalTime.localeCompare(a.arrivalTime);
                     })[0];
                   if (inboundFlight?.arrivalGateId) {
-                    // Only use it if that gate is at the origin hub and not conflicting
-                    const gateExists = depGates.some((g) => g.id === inboundFlight.arrivalGateId);
-                    const gateConflicts = gateConflictMap.has(inboundFlight.arrivalGateId);
-                    if (gateExists && !gateConflicts) departureGateId = inboundFlight.arrivalGateId;
+                    const gateId = inboundFlight.arrivalGateId;
+                    const gateExists = depGates.some((g) => g.id === gateId);
+                    const conflictType = gateConflictMap.get(gateId);
+                    // Allow the gate if no conflict, or if the overnight conflict is the
+                    // aircraft's own parked stay (it arrived there — it can depart from there)
+                    const ownOvernightStay =
+                      conflictType === 'overnight' &&
+                      (() => {
+                        const ovn = hasOvernightLayover(gateId, draftFlight.daysOfOperation, allFlights, flightModal?.flight?.id);
+                        return ovn?.arrFlight.aircraftId === aircraftId;
+                      })();
+                    if (gateExists && (!conflictType || ownOvernightStay)) departureGateId = gateId;
                   }
                 }
                 setFlightForm((p) => ({ ...p, aircraftId, departureGateId }));
