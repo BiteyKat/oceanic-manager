@@ -564,31 +564,23 @@ export default function Routes() {
             {flightModalRoute && (
               <span style={{ color: '#475569' }}>{flightModalRoute.distanceKm.toLocaleString()} km</span>
             )}
-            {(() => {
-              const reverseRoute = flightModalRoute
-                ? routes.find((r) => r.originHubId === flightModalRoute.destinationHubId && r.destinationHubId === flightModalRoute.originHubId)
-                : null;
-              return (
-                <button
-                  type="button"
-                  title={reverseRoute ? `Switch to ${flightDestHub?.iata} → ${flightOriginHub?.iata}` : 'No reverse route exists'}
-                  disabled={!reverseRoute}
-                  onClick={() => {
-                    if (!reverseRoute) return;
-                    setFlightModal((p) => p ? { routeId: reverseRoute.id, flight: undefined } : null);
-                    setFlightForm((p) => ({ ...p, departureGateId: undefined, arrivalGateId: undefined, aircraftId: undefined }));
-                  }}
-                  style={{
-                    marginLeft: 'auto', padding: '3px 8px', background: reverseRoute ? '#1e293b' : 'transparent',
-                    border: `1px solid ${reverseRoute ? '#334155' : '#1e293b'}`, borderRadius: 5,
-                    color: reverseRoute ? '#94a3b8' : '#334155', cursor: reverseRoute ? 'pointer' : 'default',
-                    fontSize: 14, lineHeight: 1,
-                  }}
-                  onMouseEnter={(e) => { if (reverseRoute) { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#e2e8f0'; } }}
-                  onMouseLeave={(e) => { if (reverseRoute) { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#94a3b8'; } }}
-                >⇄</button>
-              );
-            })()}
+            <button
+              type="button"
+              title="Swap departure and arrival direction"
+              onClick={() => setFlightForm((p) => ({
+                ...p,
+                direction: p.direction === 'inbound' ? 'outbound' : 'inbound',
+                departureGateId: undefined,
+                arrivalGateId: undefined,
+              }))}
+              style={{
+                marginLeft: 'auto', padding: '3px 8px', background: '#1e293b',
+                border: '1px solid #334155', borderRadius: 5, color: '#94a3b8',
+                cursor: 'pointer', fontSize: 14, lineHeight: 1,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#e2e8f0'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#94a3b8'; }}
+            >⇄</button>
           </div>
 
           <FormRow>
