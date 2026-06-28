@@ -436,10 +436,13 @@ export default function Routes() {
                   {route.flights.map((flight) => {
                     const ac = aircraft.find((a) => a.id === flight.aircraftId);
                     const acType = ac ? aircraftTypes.find((t) => t.id === ac.typeId) : null;
-                    const depGateInfo = origin?.terminals.flatMap((t) =>
+                    const fInbound = flight.direction === 'inbound';
+                    const depHub = fInbound ? dest : origin;
+                    const arrHub = fInbound ? origin : dest;
+                    const depGateInfo = depHub?.terminals.flatMap((t) =>
                       t.gates.filter((g) => g.id === flight.departureGateId).map((g) => ({ ...g, terminalName: t.name }))
                     )[0];
-                    const arrGateInfo = dest?.terminals.flatMap((t) =>
+                    const arrGateInfo = arrHub?.terminals.flatMap((t) =>
                       t.gates.filter((g) => g.id === flight.arrivalGateId).map((g) => ({ ...g, terminalName: t.name }))
                     )[0];
                     const sc = STATUS_COLORS[flight.status];
