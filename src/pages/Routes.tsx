@@ -36,6 +36,18 @@ function hasOvernightLayover(
   const others = allFlights.filter((f) => f.id !== excludeFlightId);
   for (const fin of others) {
     if (fin.arrivalGateId !== gateId || !fin.arrivalTime || !fin.aircraftId) continue;
+    const arrT = timeToMins(fin.arrivalTime);
+    // If the aircraft departs anywhere after arrival time on the same days,
+    // it's not parked overnight here — schedule is still being built out.
+    const hasEveningDeparture = others.some(
+      (f) =>
+        f.aircraftId === fin.aircraftId &&
+        f.id !== fin.id &&
+        f.departureTime &&
+        timeToMins(f.departureTime) > arrT &&
+        f.daysOfOperation.some((d) => fin.daysOfOperation.includes(d))
+    );
+    if (hasEveningDeparture) continue;
     for (const fout of others) {
       if (fout.departureGateId !== gateId || !fout.departureTime) continue;
       if (fout.aircraftId !== fin.aircraftId || fout.id === fin.id) continue;
