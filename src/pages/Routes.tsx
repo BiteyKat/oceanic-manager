@@ -299,6 +299,7 @@ export default function Routes() {
         daysOfOperation: flightForm.daysOfOperation,
         departureTime: flightForm.departureTime || undefined,
         arrivalTime: flightForm.arrivalTime || undefined,
+        direction: flightForm.direction,
       });
     } else {
       addFlight(routeId, flightForm);
