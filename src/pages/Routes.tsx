@@ -20,7 +20,7 @@ type RouteForm = Omit<Route, 'id' | 'flights'>;
 type FlightForm = Omit<Flight, 'id' | 'routeId'>;
 
 const emptyRoute = (): RouteForm => ({ originHubId: '', destinationHubId: '', distanceKm: 0 });
-const emptyFlight = (): FlightForm => ({ flightNumber: '', status: 'planned', daysOfOperation: [1, 2, 3, 4, 5], departureTime: '', arrivalTime: '' });
+const emptyFlight = (): FlightForm => ({ flightNumber: '', status: 'planned', daysOfOperation: [1, 2, 3, 4, 5], departureTime: '', arrivalTime: '', direction: 'outbound' });
 
 function timeToMins(t: string): number {
   const [h, m] = t.split(':').map(Number);
