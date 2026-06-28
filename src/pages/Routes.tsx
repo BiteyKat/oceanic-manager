@@ -388,21 +388,16 @@ export default function Routes() {
     t.gates.map((g) => ({ ...g, terminalName: t.name }))
   ) ?? [];
 
-  const gateConflictMap = new Map<string, 'conflict' | 'overnight'>();
+  const gateConflictMap = new Map<string, 'conflict'>();
   for (const g of [...depGates, ...arrGates]) {
     if (gateConflictMap.has(g.id)) continue;
     const excludeId = flightModal?.flight?.id;
-    // Same-day schedule conflict
     if (g.routeId && g.routeId !== excludeId) {
       const occupying = allFlights.find((f) => f.id === g.routeId);
       if (occupying && flightsConflict(draftFlight, occupying)) {
         gateConflictMap.set(g.id, 'conflict');
-        continue;
       }
     }
-    // Overnight layover conflict
-    const overnight = hasOvernightLayover(g.id, draftFlight.daysOfOperation, allFlights, excludeId);
-    if (overnight) gateConflictMap.set(g.id, 'overnight');
   }
 
   const newHubsNeeded = routeModal ? [
