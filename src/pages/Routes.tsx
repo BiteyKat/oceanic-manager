@@ -696,7 +696,7 @@ export default function Routes() {
                   if (inboundFlight?.arrivalGateId) {
                     // Only use it if that gate is at the origin hub and not conflicting
                     const gateExists = depGates.some((g) => g.id === inboundFlight.arrivalGateId);
-                    const gateConflicts = conflictingGateIds.has(inboundFlight.arrivalGateId);
+                    const gateConflicts = gateConflictMap.has(inboundFlight.arrivalGateId);
                     if (gateExists && !gateConflicts) departureGateId = inboundFlight.arrivalGateId;
                   }
                 }
