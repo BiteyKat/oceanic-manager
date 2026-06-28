@@ -551,13 +551,38 @@ export default function Routes() {
           onClose={() => setFlightModal(null)}
           width={540}
         >
-          <div style={{ marginBottom: 16, padding: '10px 14px', background: '#0f172a', borderRadius: 8, fontSize: 13, color: '#94a3b8' }}>
+          <div style={{ marginBottom: 16, padding: '10px 14px', background: '#0f172a', borderRadius: 8, fontSize: 13, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 10 }}>
             <strong style={{ color: '#38bdf8' }}>{flightOriginHub?.iata}</strong>
             {' → '}
             <strong style={{ color: '#38bdf8' }}>{flightDestHub?.iata}</strong>
             {flightModalRoute && (
-              <span style={{ marginLeft: 8, color: '#475569' }}>{flightModalRoute.distanceKm.toLocaleString()} km</span>
+              <span style={{ color: '#475569' }}>{flightModalRoute.distanceKm.toLocaleString()} km</span>
             )}
+            {(() => {
+              const reverseRoute = flightModalRoute
+                ? routes.find((r) => r.originHubId === flightModalRoute.destinationHubId && r.destinationHubId === flightModalRoute.originHubId)
+                : null;
+              return (
+                <button
+                  type="button"
+                  title={reverseRoute ? `Switch to ${flightDestHub?.iata} → ${flightOriginHub?.iata}` : 'No reverse route exists'}
+                  disabled={!reverseRoute}
+                  onClick={() => {
+                    if (!reverseRoute) return;
+                    setFlightModal((p) => p ? { routeId: reverseRoute.id, flight: undefined } : null);
+                    setFlightForm((p) => ({ ...p, departureGateId: undefined, arrivalGateId: undefined, aircraftId: undefined }));
+                  }}
+                  style={{
+                    marginLeft: 'auto', padding: '3px 8px', background: reverseRoute ? '#1e293b' : 'transparent',
+                    border: `1px solid ${reverseRoute ? '#334155' : '#1e293b'}`, borderRadius: 5,
+                    color: reverseRoute ? '#94a3b8' : '#334155', cursor: reverseRoute ? 'pointer' : 'default',
+                    fontSize: 14, lineHeight: 1,
+                  }}
+                  onMouseEnter={(e) => { if (reverseRoute) { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#e2e8f0'; } }}
+                  onMouseLeave={(e) => { if (reverseRoute) { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#94a3b8'; } }}
+                >⇄</button>
+              );
+            })()}
           </div>
 
           <FormRow>
