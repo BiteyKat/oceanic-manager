@@ -644,10 +644,15 @@ export default function Routes() {
                 // Auto-fill departure gate: find the arrival gate from the last time
                 // this aircraft landed at the origin airport
                 let departureGateId = flightForm.departureGateId;
-                if (aircraftId && flightModalRoute) {
+                if (aircraftId && flightOriginHub) {
                   const inboundFlight = routes
-                    .filter((r) => r.destinationHubId === flightModalRoute.originHubId)
-                    .flatMap((r) => r.flights)
+                    .filter((r) => r.destinationHubId === flightOriginHub.id || (r.originHubId === flightOriginHub.id))
+                    .flatMap((r) => r.flights.map((f) => {
+                      const fIsInbound = f.direction === 'inbound';
+                      const arrHubId = fIsInbound ? r.originHubId : r.destinationHubId;
+                      return { ...f, _arrHubId: arrHubId };
+                    }))
+                    .filter((f) => f._arrHubId === flightOriginHub.id)
                     .filter((f) => f.aircraftId === aircraftId && f.id !== flightModal?.flight?.id && f.arrivalGateId)
                     .sort((a, b) => {
                       // prefer latest arrival time
