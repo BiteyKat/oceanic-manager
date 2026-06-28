@@ -763,24 +763,6 @@ export default function Routes() {
             </FormField>
           </FormRow>
 
-          {(() => {
-            const depOvn = flightForm.departureGateId ? hasOvernightLayover(flightForm.departureGateId, draftFlight.daysOfOperation, allFlights, flightModal?.flight?.id) : null;
-            const arrOvn = flightForm.arrivalGateId ? hasOvernightLayover(flightForm.arrivalGateId, draftFlight.daysOfOperation, allFlights, flightModal?.flight?.id) : null;
-            return (
-              <>
-                {depOvn && (
-                  <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
-                    ⚠ Departure gate has an overnight aircraft parked ({depOvn.arrFlight.flightNumber} arrives {depOvn.arrFlight.arrivalTime}, {depOvn.depFlight.flightNumber} departs {depOvn.depFlight.departureTime} next day)
-                  </p>
-                )}
-                {arrOvn && (
-                  <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
-                    ⚠ Arrival gate has an overnight aircraft parked ({arrOvn.arrFlight.flightNumber} arrives {arrOvn.arrFlight.arrivalTime}, {arrOvn.depFlight.flightNumber} departs {arrOvn.depFlight.departureTime} next day)
-                  </p>
-                )}
-              </>
-            );
-          })()}
 
           {depGates.length === 0 && flightOriginHub && (
             <p style={{ fontSize: 12, color: '#f59e0b', marginTop: -8, marginBottom: 8 }}>
