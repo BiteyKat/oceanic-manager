@@ -675,11 +675,16 @@ export default function Routes() {
               onChange={(e) => {
                 const aircraftId = e.target.value || undefined;
                 // Auto-fill departure gate: find the arrival gate from the last time
-                // this aircraft landed at the origin airport
+                // this aircraft landed at the origin airport.
+                // Use fresh store state to avoid React closure staleness.
                 let departureGateId = flightForm.departureGateId;
                 if (aircraftId && flightOriginHub) {
-                  const inboundFlight = routes
-                    .filter((r) => r.destinationHubId === flightOriginHub.id || (r.originHubId === flightOriginHub.id))
+                  const { routes: freshRoutes, hubs: freshHubs } = useStore.getState();
+                  const freshOriginHub = freshHubs.find((h) => h.id === flightOriginHub.id);
+                  const freshAllFlights = freshRoutes.flatMap((r) => r.flights);
+
+                  const inboundFlight = freshRoutes
+                    .filter((r) => r.destinationHubId === flightOriginHub.id || r.originHubId === flightOriginHub.id)
                     .flatMap((r) => r.flights.map((f) => {
                       const fIsInbound = f.direction === 'inbound';
                       const arrHubId = fIsInbound ? r.originHubId : r.destinationHubId;
@@ -688,24 +693,25 @@ export default function Routes() {
                     .filter((f) => f._arrHubId === flightOriginHub.id)
                     .filter((f) => f.aircraftId === aircraftId && f.id !== flightModal?.flight?.id && f.arrivalGateId)
                     .sort((a, b) => {
-                      // prefer latest arrival time
                       if (!a.arrivalTime) return 1;
                       if (!b.arrivalTime) return -1;
                       return b.arrivalTime.localeCompare(a.arrivalTime);
                     })[0];
+
                   if (inboundFlight?.arrivalGateId) {
                     const gateId = inboundFlight.arrivalGateId;
-                    const gateExists = depGates.some((g) => g.id === gateId);
-                    const conflictType = gateConflictMap.get(gateId);
-                    // Allow the gate if no conflict, or if the overnight conflict is the
-                    // aircraft's own parked stay (it arrived there — it can depart from there)
-                    const ownOvernightStay =
-                      conflictType === 'overnight' &&
-                      (() => {
-                        const ovn = hasOvernightLayover(gateId, draftFlight.daysOfOperation, allFlights, flightModal?.flight?.id);
-                        return ovn?.arrFlight.aircraftId === aircraftId;
-                      })();
-                    if (gateExists && (!conflictType || ownOvernightStay)) departureGateId = gateId;
+                    // Check gate exists at the departure hub
+                    const gateExists = freshOriginHub?.terminals.some((t) => t.gates.some((g) => g.id === gateId)) ?? false;
+                    // Check for conflicts using fresh data
+                    const occupyingFlight = freshAllFlights.find((f) => {
+                      const gate = freshHubs.flatMap((h) => h.terminals.flatMap((t) => t.gates)).find((g) => g.id === gateId);
+                      return gate?.routeId === f.id && f.id !== flightModal?.flight?.id;
+                    });
+                    const hasConflict = occupyingFlight ? flightsConflict(draftFlight, occupyingFlight) : false;
+                    // Allow overnight layover by same aircraft (own parked stay)
+                    const overnight = hasOvernightLayover(gateId, draftFlight.daysOfOperation, freshAllFlights, flightModal?.flight?.id);
+                    const ownOvernightStay = overnight?.arrFlight.aircraftId === aircraftId;
+                    if (gateExists && (!hasConflict || ownOvernightStay)) departureGateId = gateId;
                   }
                 }
                 setFlightForm((p) => ({ ...p, aircraftId, departureGateId }));
