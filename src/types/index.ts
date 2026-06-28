@@ -61,6 +61,7 @@ export interface Flight {
   daysOfOperation: number[]; // 0=Sun … 6=Sat
   departureTime?: string; // HH:MM local time
   arrivalTime?: string;   // HH:MM local time
+  direction?: 'outbound' | 'inbound'; // omitted = outbound
 }
 
 export interface Route {
