@@ -456,6 +456,9 @@ export default function Routes() {
                               <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.color }}>
                                 {flight.status}
                               </span>
+                              <span style={{ fontSize: 11, color: '#64748b' }}>
+                                {fInbound ? `${dest?.iata} → ${origin?.iata}` : `${origin?.iata} → ${dest?.iata}`}
+                              </span>
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, marginBottom: 8 }}>
                               <span style={{ color: '#64748b' }}>
