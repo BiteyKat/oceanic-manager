@@ -283,6 +283,7 @@ export default function Routes() {
       arrivalGateId: flight.arrivalGateId,
       departureTime: flight.departureTime ?? '',
       arrivalTime: flight.arrivalTime ?? '',
+      direction: flight.direction ?? 'outbound',
     });
   };
 
