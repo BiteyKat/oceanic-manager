@@ -745,8 +745,7 @@ export default function Routes() {
                 <option value="">No gate</option>
                 {depGates.map((g) => {
                   const ct = gateConflictMap.get(g.id);
-                  const label = ct === 'overnight' ? ' – overnight layover' : ct === 'conflict' ? ' – schedule conflict' : '';
-                  return <option key={g.id} value={g.id} disabled={!!ct}>{ct ? '⚠ ' : ''}{g.name} – {g.terminalName}{label}</option>;
+                  return <option key={g.id} value={g.id} disabled={!!ct}>{ct ? '⚠ ' : ''}{g.name} – {g.terminalName}{ct ? ' – schedule conflict' : ''}</option>;
                 })}
               </Select>
             </FormField>
@@ -758,8 +757,7 @@ export default function Routes() {
                 <option value="">No gate</option>
                 {arrGates.map((g) => {
                   const ct = gateConflictMap.get(g.id);
-                  const label = ct === 'overnight' ? ' – overnight layover' : ct === 'conflict' ? ' – schedule conflict' : '';
-                  return <option key={g.id} value={g.id} disabled={!!ct}>{ct ? '⚠ ' : ''}{g.name} – {g.terminalName}{label}</option>;
+                  return <option key={g.id} value={g.id} disabled={!!ct}>{ct ? '⚠ ' : ''}{g.name} – {g.terminalName}{ct ? ' – schedule conflict' : ''}</option>;
                 })}
               </Select>
             </FormField>
