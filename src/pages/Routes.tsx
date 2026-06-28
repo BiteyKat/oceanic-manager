@@ -51,7 +51,6 @@ function hasOvernightLayover(
     for (const fout of others) {
       if (fout.departureGateId !== gateId || !fout.departureTime) continue;
       if (fout.aircraftId !== fin.aircraftId || fout.id === fin.id) continue;
-      const arrT = timeToMins(fin.arrivalTime);
       const depT = timeToMins(fout.departureTime);
       if (arrT <= depT) continue; // same-day turnaround, not overnight
       // Gate is held overnight: fin lands on day D, fout departs day D+1
