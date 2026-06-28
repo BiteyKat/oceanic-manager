@@ -506,24 +506,45 @@ export default function Routes() {
       {/* Route modal */}
       {(routeModal === 'add' || routeModal === 'edit') && (
         <Modal title={routeModal === 'add' ? 'Add Route' : 'Edit Route'} onClose={() => setRouteModal(null)} width={520}>
-          <FormRow>
-            <AirportInput
-              label="Origin"
-              value={originCode}
-              airport={originAirport}
-              hubBadge={!!(originAirport && resolveHub(originAirport))}
-              onSelect={handleSelectOrigin}
-              onClear={clearOrigin}
-            />
-            <AirportInput
-              label="Destination"
-              value={destCode}
-              airport={destAirport}
-              hubBadge={!!(destAirport && resolveHub(destAirport))}
-              onSelect={handleSelectDest}
-              onClear={clearDest}
-            />
-          </FormRow>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <FormRow>
+                <AirportInput
+                  label="Origin"
+                  value={originCode}
+                  airport={originAirport}
+                  hubBadge={!!(originAirport && resolveHub(originAirport))}
+                  onSelect={handleSelectOrigin}
+                  onClear={clearOrigin}
+                />
+                <AirportInput
+                  label="Destination"
+                  value={destCode}
+                  airport={destAirport}
+                  hubBadge={!!(destAirport && resolveHub(destAirport))}
+                  onSelect={handleSelectDest}
+                  onClear={clearDest}
+                />
+              </FormRow>
+            </div>
+            <button
+              type="button"
+              title="Swap origin and destination"
+              onClick={() => {
+                const prevOrigin = originAirport;
+                const prevDest = destAirport;
+                if (prevOrigin) handleSelectDest(prevOrigin); else clearDest();
+                if (prevDest) handleSelectOrigin(prevDest); else clearOrigin();
+              }}
+              style={{
+                marginBottom: 6, padding: '7px 10px', background: '#1e293b',
+                border: '1px solid #334155', borderRadius: 6, color: '#94a3b8',
+                cursor: 'pointer', fontSize: 16, lineHeight: 1, flexShrink: 0,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#e2e8f0'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#94a3b8'; }}
+            >⇄</button>
+          </div>
           <FormField label="Distance (km)" required hint={distAutoCalc ? 'Auto-calculated from coordinates' : undefined}>
             <Input
               type="number" placeholder="0"
