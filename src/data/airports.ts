@@ -1560,6 +1560,8 @@ for (const [iata, icao, name, city, country, lat, lon, timezone] of RAW) {
   if (icao && !byIcao.has(icao)) byIcao.set(icao, r);
 }
 
+export const AIRPORT_TIMEZONES: string[] = [...new Set(RAW.map(r => r[7]))].sort();
+
 export function findAirport(code: string): AirportRecord | undefined {
   const u = code.trim().toUpperCase();
   return byIata.get(u) ?? byIcao.get(u);
