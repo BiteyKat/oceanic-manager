@@ -222,6 +222,6 @@ export default function Hubs() {
           </div>
         </Modal>
       )}
-    </div>
+    </Page>
   );
 }
