@@ -135,6 +135,6 @@ export default function Dashboard() {
           <div style={{ fontSize: 14 }}>Start by adding a hub from the Hubs page</div>
         </div>
       )}
-    </div>
+    </Page>
   );
 }
