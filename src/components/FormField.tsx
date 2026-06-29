@@ -1,3 +1,5 @@
+import { useIsMobile } from '../hooks/useIsMobile';
+
 interface Props {
   label: string;
   children: React.ReactNode;
