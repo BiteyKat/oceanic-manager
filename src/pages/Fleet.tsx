@@ -280,6 +280,6 @@ export default function Fleet() {
           </div>
         </Modal>
       )}
-    </div>
+    </Page>
   );
 }
