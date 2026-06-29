@@ -393,30 +393,25 @@ export default function Routes() {
   for (const g of [...depGates, ...arrGates]) {
     if (gateConflictMap.has(g.id)) continue;
     const excludeId = flightModal?.flight?.id;
-    if (!g.routeId || g.routeId === excludeId) continue;
-    const occupying = allFlights.find((f) => f.id === g.routeId);
-    if (!occupying) continue;
-    const sharedDays = draftFlight.daysOfOperation.some((d) => occupying.daysOfOperation.includes(d));
-    if (!sharedDays) continue;
-
-    const isOccDep = occupying.departureGateId === g.id;
-    const isOccArr = occupying.arrivalGateId === g.id;
-    // draftGateTime: when the draft flight physically uses this gate
-    const draftGateTime = depGateIds.has(g.id) ? draftFlight.departureTime : draftFlight.arrivalTime;
-
-    let hasConflict = false;
-    if (isOccDep && isOccArr) {
-      // Turnaround: gate occupied from arrival to departure — use full flight overlap
-      hasConflict = flightsConflict(draftFlight, occupying);
-    } else if (isOccDep && occupying.departureTime && draftGateTime) {
-      // Gate free after occupying.departureTime; conflict only if draft needs gate before then
-      hasConflict = timeToMins(draftGateTime) < timeToMins(occupying.departureTime);
-    } else if (isOccArr && occupying.arrivalTime && draftGateTime) {
-      // Gate occupied from occupying.arrivalTime; conflict only if draft needs gate after then
-      hasConflict = timeToMins(draftGateTime) > timeToMins(occupying.arrivalTime);
+    if (g.routeId && g.routeId !== excludeId) {
+      const occupying = allFlights.find((f) => f.id === g.routeId);
+      if (occupying && flightsConflict(draftFlight, occupying)) {
+        // If this gate has an overnight layover, only block if the draft falls
+        // within the overnight occupation window (evening→morning); midday is free.
+        const overnight = hasOvernightLayover(g.id, draftFlight.daysOfOperation, allFlights, excludeId);
+        if (overnight?.arrFlight.arrivalTime && overnight?.depFlight.departureTime) {
+          const arrT = timeToMins(overnight.arrFlight.arrivalTime);
+          const depT = timeToMins(overnight.depFlight.departureTime);
+          const draftT = depGateIds.has(g.id)
+            ? (draftFlight.departureTime ? timeToMins(draftFlight.departureTime) : -1)
+            : (draftFlight.arrivalTime ? timeToMins(draftFlight.arrivalTime) : -1);
+          // Overnight window crosses midnight: occupied from arrT (evening) to depT (morning)
+          const inOvernightWindow = draftT >= 0 && (draftT >= arrT || draftT <= depT);
+          if (!inOvernightWindow) continue;
+        }
+        gateConflictMap.set(g.id, 'conflict');
+      }
     }
-
-    if (hasConflict) gateConflictMap.set(g.id, 'conflict');
   }
 
   const newHubsNeeded = routeModal ? [
