@@ -3,14 +3,9 @@ import { useStore } from '../store';
 import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn } from '../components/FormField';
+import { AIRPORT_TIMEZONES } from '../data/airports';
 
-const TIMEZONES = [
-  'UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-  'America/Toronto', 'America/Vancouver', 'America/Sao_Paulo', 'Europe/London',
-  'Europe/Paris', 'Europe/Amsterdam', 'Europe/Frankfurt', 'Europe/Madrid', 'Europe/Rome',
-  'Europe/Moscow', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Singapore',
-  'Asia/Tokyo', 'Asia/Seoul', 'Asia/Shanghai', 'Australia/Sydney', 'Pacific/Auckland',
-];
+const TIMEZONES = ['UTC', ...AIRPORT_TIMEZONES];
 
 type HubForm = Omit<Hub, 'id' | 'terminals'>;
 const emptyHub = (): HubForm => ({ name: '', iata: '', icao: '', city: '', country: '', timezone: 'UTC', lat: undefined, lon: undefined });
