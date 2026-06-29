@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
-import { FormField, FormRow, Input, Btn } from '../components/FormField';
+import { FormField, FormRow, Input, Btn, Page } from '../components/FormField';
 
 export default function Airports() {
   const { hubs, updateHub, deleteHub, ensureDefaultTerminal, addGate, updateGate, deleteGate } = useStore();
