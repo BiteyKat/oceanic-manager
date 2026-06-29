@@ -150,6 +150,6 @@ export default function Airports() {
           </div>
         </Modal>
       )}
-    </div>
+    </Page>
   );
 }
