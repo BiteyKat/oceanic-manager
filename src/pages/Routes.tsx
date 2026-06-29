@@ -420,7 +420,7 @@ export default function Routes() {
   ].filter(Boolean) as AirportRecord[] : [];
 
   return (
-    <div style={{ padding: 32 }}>
+    <Page>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0' }}>Routes</h1>
