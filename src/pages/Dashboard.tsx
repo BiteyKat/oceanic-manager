@@ -35,7 +35,7 @@ export default function Dashboard() {
   }));
 
   return (
-    <div style={{ padding: 32 }}>
+    <Page>
       <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0', marginBottom: 8 }}>Dashboard</h1>
       <p style={{ color: '#64748b', marginBottom: 28 }}>Airline operations overview</p>
 
