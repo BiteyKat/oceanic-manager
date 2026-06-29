@@ -795,6 +795,6 @@ export default function Routes() {
           </div>
         </Modal>
       )}
-    </div>
+    </Page>
   );
 }
