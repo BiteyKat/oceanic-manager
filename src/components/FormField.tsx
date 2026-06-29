@@ -1,5 +1,14 @@
 import { useIsMobile } from '../hooks/useIsMobile';
 
+export function Page({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ padding: isMobile ? '16px 16px 24px' : 32 }}>
+      {children}
+    </div>
+  );
+}
+
 interface Props {
   label: string;
   children: React.ReactNode;
