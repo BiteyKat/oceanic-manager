@@ -681,7 +681,7 @@ export default function Routes() {
           </FormRow>
 
           <FormField label="Days of Operation">
-            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
               {DAYS.map((d, i) => (
                 <button key={d} type="button" onClick={() => toggleDay(i)} style={{
                   padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer',
