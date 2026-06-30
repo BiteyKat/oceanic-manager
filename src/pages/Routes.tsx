@@ -5,6 +5,7 @@ import type { AirportRecord } from '../data/airports';
 import { findAirport, searchAirports } from '../data/airports';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
