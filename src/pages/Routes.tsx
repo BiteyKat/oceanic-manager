@@ -447,28 +447,30 @@ export default function Routes() {
 
           return (
             <div key={route.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
-                    {origin?.iata ?? '?'}
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: '14px 20px', gap: isMobile ? 10 : 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
+                      {origin?.iata ?? '?'}
+                    </div>
+                    <span style={{ color: '#475569', fontSize: 16 }}>→</span>
+                    <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
+                      {dest?.iata ?? '?'}
+                    </div>
                   </div>
-                  <span style={{ color: '#475569', fontSize: 16 }}>→</span>
-                  <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
-                    {dest?.iata ?? '?'}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {origin?.name ?? '?'} → {dest?.name ?? '?'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                      {route.distanceKm.toLocaleString()} km
+                      {' · '}
+                      {route.flights.length} flight{route.flights.length !== 1 ? 's' : ''}
+                      {activeCount > 0 && ` · ${activeCount} active`}
+                    </div>
                   </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: 14 }}>
-                    {origin?.name ?? '?'} → {dest?.name ?? '?'}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                    {route.distanceKm.toLocaleString()} km
-                    {' · '}
-                    {route.flights.length} flight{route.flights.length !== 1 ? 's' : ''}
-                    {activeCount > 0 && ` · ${activeCount} active`}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', width: isMobile ? '100%' : 'auto' }}>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openEditRoute(route)}>Edit</Btn>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setExpandedRoute(isExpanded ? null : route.id)}>
                     {isExpanded ? 'Collapse' : 'Flights ▾'}
