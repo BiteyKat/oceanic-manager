@@ -92,13 +92,13 @@ export default function Fleet() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <Select value={filterHub} onChange={(e) => setFilterHub(e.target.value)} style={{ width: 180 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 20 }}>
+        <Select value={filterHub} onChange={(e) => setFilterHub(e.target.value)} style={{ width: isMobile ? '100%' : 180 }}>
           <option value="">All Hubs</option>
           {hubs.map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
           <option value="__none__">Unassigned</option>
         </Select>
-        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: 160 }}>
+        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: isMobile ? '100%' : 160 }}>
           <option value="">All Status</option>
           <option value="available">Available</option>
           <option value="assigned">Assigned</option>
