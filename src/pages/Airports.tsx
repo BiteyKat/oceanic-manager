@@ -13,6 +13,7 @@ export default function Airports() {
   const airports = hubs.filter((h) => h.isRouteAirport === true);
   const isMobile = useIsMobile();
 
+  const [search, setSearch] = useState('');
   const [gateModal, setGateModal] = useState<{ hub: Hub; gate?: Gate } | null>(null);
   const [gateName, setGateName] = useState('');
   const [editModal, setEditModal] = useState<Hub | null>(null);
