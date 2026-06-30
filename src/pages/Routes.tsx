@@ -193,6 +193,7 @@ export default function Routes() {
     addHub,
   } = useStore();
 
+  const isMobile = useIsMobile();
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
   const [routeModal, setRouteModal] = useState<null | 'add' | 'edit'>(null);
   const [flightModal, setFlightModal] = useState<{ routeId: string; flight?: Flight } | null>(null);
