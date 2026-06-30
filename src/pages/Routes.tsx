@@ -442,13 +442,84 @@ export default function Routes() {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {routes.map((route) => {
+      {routes.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <input
+            placeholder="Search routes…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flex: 1, minWidth: isMobile ? '100%' : 200,
+              background: '#0f172a', border: '1px solid #334155', borderRadius: 6,
+              color: '#e2e8f0', padding: '7px 10px', fontSize: 13, outline: 'none',
+            }}
+          />
+          <Select value={filterHub} onChange={(e) => setFilterHub(e.target.value)} style={{ width: isMobile ? '100%' : 160 }}>
+            <option value="">All Origins</option>
+            {hubs.filter((h) => !h.isRouteAirport).map((h) => (
+              <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>
+            ))}
+          </Select>
+          <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} style={{ width: isMobile ? '100%' : 150 }}>
+            <option value="alpha">Sort: A→Z</option>
+            <option value="distance">Sort: Distance</option>
+            <option value="flights">Sort: Flights</option>
+          </Select>
+          <button
+            onClick={() => setGroupByHub((g) => !g)}
+            style={{
+              padding: '7px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+              background: groupByHub ? 'rgba(56,189,248,0.15)' : 'transparent',
+              color: groupByHub ? '#38bdf8' : '#94a3b8',
+              border: `1px solid ${groupByHub ? '#0369a1' : '#334155'}`,
+              transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}
+          >
+            Group by Hub
+          </button>
+        </div>
+      )}
+
+      {(() => {
+        const q = search.trim().toLowerCase();
+        let filtered = routes.filter((route) => {
+          const origin = hubs.find((h) => h.id === route.originHubId);
+          const dest = hubs.find((h) => h.id === route.destinationHubId);
+          if (filterHub && route.originHubId !== filterHub) return false;
+          if (!q) return true;
+          return (
+            origin?.iata.toLowerCase().includes(q) ||
+            origin?.name.toLowerCase().includes(q) ||
+            origin?.city.toLowerCase().includes(q) ||
+            dest?.iata.toLowerCase().includes(q) ||
+            dest?.name.toLowerCase().includes(q) ||
+            dest?.city.toLowerCase().includes(q)
+          );
+        });
+        filtered = [...filtered].sort((a, b) => {
+          if (sortBy === 'distance') return b.distanceKm - a.distanceKm;
+          if (sortBy === 'flights') return b.flights.length - a.flights.length;
+          const ao = hubs.find((h) => h.id === a.originHubId)?.iata ?? '';
+          const bo = hubs.find((h) => h.id === b.originHubId)?.iata ?? '';
+          if (ao !== bo) return ao.localeCompare(bo);
+          const ad = hubs.find((h) => h.id === a.destinationHubId)?.iata ?? '';
+          const bd = hubs.find((h) => h.id === b.destinationHubId)?.iata ?? '';
+          return ad.localeCompare(bd);
+        });
+
+        if (filtered.length === 0 && routes.length > 0) {
+          return (
+            <div style={{ textAlign: 'center', padding: 48, color: '#475569', border: '1px dashed #334155', borderRadius: 12 }}>
+              <p style={{ fontSize: 14, color: '#64748b' }}>No routes match your search.</p>
+            </div>
+          );
+        }
+
+        const renderRoute = (route: Route) => {
           const origin = hubs.find((h) => h.id === route.originHubId);
           const dest = hubs.find((h) => h.id === route.destinationHubId);
           const isExpanded = expandedRoute === route.id;
           const activeCount = route.flights.filter((f) => f.status === 'active').length;
-
           return (
             <div key={route.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: '14px 20px', gap: isMobile ? 10 : 16 }}>
