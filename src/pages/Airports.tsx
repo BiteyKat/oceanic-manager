@@ -67,6 +67,20 @@ export default function Airports() {
         </div>
       </div>
 
+      {airports.length > 0 && (
+        <input
+          placeholder="Search airports…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%', marginBottom: 16,
+            background: '#0f172a', border: '1px solid #334155', borderRadius: 6,
+            color: '#e2e8f0', padding: '7px 10px', fontSize: 13, outline: 'none',
+            boxSizing: 'border-box',
+          }}
+        />
+      )}
+
       {airports.length === 0 && (
         <div style={{ textAlign: 'center', padding: 64, color: '#475569', border: '1px dashed #334155', borderRadius: 12 }}>
           <div style={{ fontSize: 40, marginBottom: 8 }}>🗺️</div>
