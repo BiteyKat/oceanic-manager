@@ -194,6 +194,10 @@ export default function Routes() {
   } = useStore();
 
   const isMobile = useIsMobile();
+  const [search, setSearch] = useState('');
+  const [filterHub, setFilterHub] = useState('');
+  const [sortBy, setSortBy] = useState<'alpha' | 'distance' | 'flights'>('alpha');
+  const [groupByHub, setGroupByHub] = useState(false);
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
   const [routeModal, setRouteModal] = useState<null | 'add' | 'edit'>(null);
   const [flightModal, setFlightModal] = useState<{ routeId: string; flight?: Flight } | null>(null);
