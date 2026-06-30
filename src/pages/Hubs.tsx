@@ -76,21 +76,23 @@ export default function Hubs() {
           const assignedGates = hub.terminals.flatMap((t) => t.gates.filter((g) => g.routeId)).length;
           return (
             <div key={hub.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
-                <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1, minWidth: 48, textAlign: 'center' }}>
-                  {hub.iata}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{hub.name}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                    {hub.city}, {hub.country} · ICAO: {hub.icao} · {hub.timezone}
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: '14px 20px', gap: isMobile ? 10 : 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                  <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1, minWidth: 48, textAlign: 'center', flexShrink: 0 }}>
+                    {hub.iata}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{hub.name}</div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                      {hub.city}, {hub.country} · ICAO: {hub.icao} · {hub.timezone}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                      <span>{hub.terminals.length} terminal{hub.terminals.length !== 1 ? 's' : ''}</span>
+                      <span>{totalGates} gate{totalGates !== 1 ? 's' : ''} ({assignedGates} assigned)</span>
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#64748b', marginRight: 8 }}>
-                  <span>{hub.terminals.length} terminal{hub.terminals.length !== 1 ? 's' : ''}</span>
-                  <span>{totalGates} gate{totalGates !== 1 ? 's' : ''} ({assignedGates} assigned)</span>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', width: isMobile ? '100%' : 'auto' }}>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openEdit(hub)}>Edit</Btn>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setExpandedHub(isExpanded ? null : hub.id)}>
                     {isExpanded ? 'Collapse' : 'Terminals ▾'}
