@@ -165,7 +165,7 @@ export default function Layout() {
         </aside>
 
         {/* Page content */}
-        <main style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
+        <main style={{ flex: 1, overflow: 'auto', background: '#0f172a', minHeight: 0 }}>
           <Outlet />
         </main>
 
