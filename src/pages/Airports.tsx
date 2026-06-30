@@ -3,10 +3,12 @@ import { useStore } from '../store';
 import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Btn, Page } from '../components/FormField';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function Airports() {
   const { hubs, updateHub, deleteHub, ensureDefaultTerminal, addGate, updateGate, deleteGate } = useStore();
   const airports = hubs.filter((h) => h.isRouteAirport === true);
+  const isMobile = useIsMobile();
 
   const [gateModal, setGateModal] = useState<{ hub: Hub; gate?: Gate } | null>(null);
   const [gateName, setGateName] = useState('');
