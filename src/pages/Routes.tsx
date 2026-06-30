@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import type { Route, Flight, RouteStatus } from '../types';
 import type { AirportRecord } from '../data/airports';
 import { findAirport, searchAirports } from '../data/airports';
+import { useIsMobile } from '../hooks/useIsMobile';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
 
@@ -191,6 +192,7 @@ export default function Routes() {
     assignAircraftToFlight, assignGatesToFlight,
     addHub,
   } = useStore();
+  const isMobile = useIsMobile();
 
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
   const [routeModal, setRouteModal] = useState<null | 'add' | 'edit'>(null);
@@ -445,7 +447,7 @@ export default function Routes() {
 
           return (
             <div key={route.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '4px 10px', fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
                     {origin?.iata ?? '?'}
@@ -466,7 +468,7 @@ export default function Routes() {
                     {activeCount > 0 && ` · ${activeCount} active`}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto', justifyContent: 'flex-end' }}>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openEditRoute(route)}>Edit</Btn>
                   <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setExpandedRoute(isExpanded ? null : route.id)}>
                     {isExpanded ? 'Collapse' : 'Flights ▾'}
@@ -542,7 +544,7 @@ export default function Routes() {
                                 </>
                               )}
                             </div>
-                            <div style={{ display: 'flex', gap: 3 }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                               {DAYS.map((d, i) => (
                                 <span key={d} style={{
                                   fontSize: 10, fontWeight: 600, padding: '1px 5px', borderRadius: 3,
@@ -677,7 +679,7 @@ export default function Routes() {
           </FormRow>
 
           <FormField label="Days of Operation">
-            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
               {DAYS.map((d, i) => (
                 <button key={d} type="button" onClick={() => toggleDay(i)} style={{
                   padding: '4px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: 'pointer',

@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import type { Aircraft } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 type AcForm = Omit<Aircraft, 'id'>;
 const emptyAc = (): AcForm => ({ registration: '', typeId: '', name: '', hubId: undefined, routeId: undefined, status: 'available' });
@@ -18,6 +19,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 
 export default function Fleet() {
   const { aircraft, aircraftTypes, hubs, routes, addAircraft, updateAircraft, deleteAircraft, assignAircraftToHub } = useStore();
+  const isMobile = useIsMobile();
   const [modal, setModal] = useState<null | 'add' | 'edit' | 'assign' | 'bulk'>(null);
   const [editing, setEditing] = useState<Aircraft | null>(null);
   const [form, setForm] = useState<AcForm>(emptyAc());
@@ -84,19 +86,19 @@ export default function Fleet() {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0' }}>Fleet</h1>
           <p style={{ color: '#64748b', marginTop: 4 }}>Manage aircraft and hub assignments</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Btn variant="ghost" onClick={openBulk}>+ Bulk Add</Btn>
           <Btn onClick={openAdd}>+ Add Aircraft</Btn>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <Select value={filterHub} onChange={(e) => setFilterHub(e.target.value)} style={{ width: 180 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 10, marginBottom: 20 }}>
+        <Select value={filterHub} onChange={(e) => setFilterHub(e.target.value)} style={{ width: isMobile ? '100%' : 180 }}>
           <option value="">All Hubs</option>
           {hubs.map((h) => <option key={h.id} value={h.id}>{h.iata} – {h.name}</option>)}
           <option value="__none__">Unassigned</option>
         </Select>
-        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: 160 }}>
+        <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: isMobile ? '100%' : 160 }}>
           <option value="">All Status</option>
           <option value="available">Available</option>
           <option value="assigned">Assigned</option>
@@ -113,6 +115,7 @@ export default function Fleet() {
 
       {displayed.length > 0 && (
         <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #334155' }}>
@@ -160,6 +163,7 @@ export default function Fleet() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
