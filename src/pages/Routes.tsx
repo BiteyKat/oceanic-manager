@@ -263,7 +263,7 @@ export default function Routes() {
       icao: a.icao,
       city: a.city,
       country: a.country,
-      timezone: 'UTC',
+      timezone: a.timezone ?? 'UTC',
       lat: a.lat,
       lon: a.lon,
       isRouteAirport: true,
