@@ -202,6 +202,7 @@ const RAW: [string, string, string, string, string, number, number, string][] = 
   ["CLT", "KCLT", 'Charlotte Douglas International', "Charlotte", "USA", 35.2140, -80.9431, "America/New_York"],
   ["CMH", "KCMH", 'John Glenn Columbus International', "Columbus", "USA", 39.9980, -82.8919, "America/New_York"],
   ["CVG", "KCVG", 'Cincinnati/Northern Kentucky International', "Cincinnati", "USA", 39.0488, -84.6678, "America/New_York"],
+  ['DAL', 'KDAL', "Dallas Love Field", 'Dallas', "USA", 32.84594, -96.85088, "America/Chicago"],
   ["DCA", "KDCA", 'Ronald Reagan Washington National', "Washington DC", "USA", 38.8521, -77.0377, "America/New_York"],
   ["DEN", "KDEN", 'Denver International', "Denver", "USA", 39.8561, -104.6737, "America/Denver"],
   ["DFW", "KDFW", 'Dallas/Fort Worth International', "Dallas", "USA", 32.8998, -97.0403, "America/Chicago"],
