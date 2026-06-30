@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import type { Aircraft } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 type AcForm = Omit<Aircraft, 'id'>;
 const emptyAc = (): AcForm => ({ registration: '', typeId: '', name: '', hubId: undefined, routeId: undefined, status: 'available' });
