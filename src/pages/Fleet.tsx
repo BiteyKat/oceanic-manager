@@ -115,7 +115,8 @@ export default function Fleet() {
 
       {displayed.length > 0 && (
         <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #334155' }}>
                 {['Registration', 'Name', 'Type', 'Category', 'Pax', 'Range', 'Hub', 'Route', 'Status', ''].map((h) => (
