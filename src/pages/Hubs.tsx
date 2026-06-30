@@ -105,14 +105,14 @@ export default function Hubs() {
                 <div style={{ borderTop: '1px solid #334155', padding: '16px 20px', background: '#162032' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                     <span style={{ fontWeight: 600, fontSize: 14, color: '#94a3b8' }}>Terminals</span>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       {addingTerminalFor === hub.id ? (
                         <>
                           <Input
                             placeholder="Terminal name"
                             value={terminalName}
                             onChange={(e) => setTerminalName(e.target.value)}
-                            style={{ width: 180, padding: '5px 8px', fontSize: 13 }}
+                            style={{ width: isMobile ? '100%' : 180, padding: '5px 8px', fontSize: 13 }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && terminalName.trim()) {
                                 addTerminal(hub.id, terminalName.trim());
