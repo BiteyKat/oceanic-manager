@@ -459,7 +459,7 @@ export default function Routes() {
                     </div>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontWeight: 600, color: '#e2e8f0', fontSize: 14 }}>
                       {origin?.name ?? '?'} → {dest?.name ?? '?'}
                     </div>
                     <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
