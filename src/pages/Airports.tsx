@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
-import { FormField, FormRow, Input, Btn, Page } from '../components/FormField';
+import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { findAirport, AIRPORT_TIMEZONES } from '../data/airports';
+
+const TIMEZONES = ['UTC', ...AIRPORT_TIMEZONES];
 
 export default function Airports() {
   const { hubs, updateHub, deleteHub, ensureDefaultTerminal, addGate, updateGate, deleteGate } = useStore();
@@ -14,6 +17,7 @@ export default function Airports() {
   const [gateName, setGateName] = useState('');
   const [editModal, setEditModal] = useState<Hub | null>(null);
   const [editName, setEditName] = useState('');
+  const [editTimezone, setEditTimezone] = useState('UTC');
 
   const allGates = (hub: Hub) => hub.terminals.flatMap((t) => t.gates);
 
@@ -31,6 +35,20 @@ export default function Airports() {
       addGate(gateModal.hub.id, termId, gateName.trim());
     }
     setGateModal(null);
+  };
+
+  const openEdit = (hub: Hub) => {
+    setEditModal(hub);
+    setEditName(hub.name);
+    // Auto-suggest correct timezone from airport database if currently UTC
+    const record = findAirport(hub.iata);
+    setEditTimezone(hub.timezone && hub.timezone !== 'UTC' ? hub.timezone : (record?.timezone ?? hub.timezone ?? 'UTC'));
+  };
+
+  const saveEdit = () => {
+    if (!editModal || !editName.trim()) return;
+    updateHub(editModal.id, { name: editName.trim(), timezone: editTimezone });
+    setEditModal(null);
   };
 
   const promoteToHub = (hub: Hub) => {
@@ -74,6 +92,7 @@ export default function Airports() {
                     <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
                       {airport.city}, {airport.country}
                       {airport.icao && <> · ICAO: {airport.icao}</>}
+                      {' · '}{airport.timezone}
                     </div>
                   </div>
                   <div style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto', flexShrink: 0 }}>
@@ -82,6 +101,7 @@ export default function Airports() {
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', width: isMobile ? '100%' : 'auto' }}>
                   <Btn style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openGate(airport)}>+ Gate</Btn>
+                  <Btn variant="ghost" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openEdit(airport)}>Edit</Btn>
                   <Btn
                     variant="ghost"
                     style={{ padding: '5px 10px', fontSize: 12 }}
@@ -142,15 +162,18 @@ export default function Airports() {
       )}
 
       {editModal && (
-        <Modal title="Edit Airport" onClose={() => setEditModal(null)}>
-          <FormRow>
-            <FormField label="Airport Name">
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
-            </FormField>
-          </FormRow>
+        <Modal title={`Edit — ${editModal.iata}`} onClose={() => setEditModal(null)}>
+          <FormField label="Airport Name" required>
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+          </FormField>
+          <FormField label="Timezone">
+            <Select value={editTimezone} onChange={(e) => setEditTimezone(e.target.value)}>
+              {TIMEZONES.map((tz) => <option key={tz} value={tz}>{tz}</option>)}
+            </Select>
+          </FormField>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
             <Btn variant="ghost" onClick={() => setEditModal(null)}>Cancel</Btn>
-            <Btn onClick={() => { updateHub(editModal.id, { name: editName }); setEditModal(null); }} disabled={!editName.trim()}>Save</Btn>
+            <Btn onClick={saveEdit} disabled={!editName.trim()}>Save</Btn>
           </div>
         </Modal>
       )}
