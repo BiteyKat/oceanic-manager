@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store';
 import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
-import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
+import { FormField, Input, Select, Btn, Page } from '../components/FormField';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { findAirport, AIRPORT_TIMEZONES } from '../data/airports';
 
