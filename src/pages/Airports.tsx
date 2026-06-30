@@ -64,21 +64,23 @@ export default function Airports() {
           const assignedGates = gates.filter((g) => g.routeId).length;
           return (
             <div key={airport.id} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 16 }}>
-                <div style={{ background: '#0f2a1e', color: '#34d399', borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1, minWidth: 48, textAlign: 'center' }}>
-                  {airport.iata}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{airport.name}</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                    {airport.city}, {airport.country}
-                    {airport.icao && <> · ICAO: {airport.icao}</>}
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: '14px 20px', gap: isMobile ? 10 : 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                  <div style={{ background: '#0f2a1e', color: '#34d399', borderRadius: 6, padding: '4px 10px', fontSize: 14, fontWeight: 700, letterSpacing: 1, minWidth: 48, textAlign: 'center', flexShrink: 0 }}>
+                    {airport.iata}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{airport.name}</div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                      {airport.city}, {airport.country}
+                      {airport.icao && <> · ICAO: {airport.icao}</>}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto', flexShrink: 0 }}>
+                    {gates.length} gate{gates.length !== 1 ? 's' : ''}{gates.length > 0 ? ` (${assignedGates} assigned)` : ''}
                   </div>
                 </div>
-                <div style={{ fontSize: 12, color: '#64748b', marginRight: 8 }}>
-                  {gates.length} gate{gates.length !== 1 ? 's' : ''}{gates.length > 0 ? ` (${assignedGates} assigned)` : ''}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', width: isMobile ? '100%' : 'auto' }}>
                   <Btn style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => openGate(airport)}>+ Gate</Btn>
                   <Btn
                     variant="ghost"
