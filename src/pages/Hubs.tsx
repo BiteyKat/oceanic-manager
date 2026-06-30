@@ -4,6 +4,7 @@ import type { Hub, Gate } from '../types';
 import Modal from '../components/Modal';
 import { FormField, FormRow, Input, Select, Btn, Page } from '../components/FormField';
 import { AIRPORT_TIMEZONES } from '../data/airports';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const TIMEZONES = ['UTC', ...AIRPORT_TIMEZONES];
 
