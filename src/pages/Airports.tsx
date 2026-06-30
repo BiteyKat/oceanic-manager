@@ -92,7 +92,11 @@ export default function Airports() {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {airports.map((airport) => {
+        {airports.filter((a) => {
+          const q = search.trim().toLowerCase();
+          if (!q) return true;
+          return a.iata.toLowerCase().includes(q) || a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.country.toLowerCase().includes(q);
+        }).map((airport) => {
           const gates = allGates(airport);
           const assignedGates = gates.filter((g) => g.routeId).length;
           return (
