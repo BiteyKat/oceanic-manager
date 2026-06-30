@@ -644,8 +644,41 @@ export default function Routes() {
               )}
             </div>
           );
-        })}
-      </div>
+        };
+
+        if (groupByHub) {
+          const hubGroups = hubs
+            .filter((h) => !h.isRouteAirport && filtered.some((r) => r.originHubId === h.id))
+            .sort((a, b) => a.iata.localeCompare(b.iata));
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {hubGroups.map((hub) => {
+                const hubRoutes = filtered.filter((r) => r.originHubId === hub.id);
+                return (
+                  <div key={hub.id}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <div style={{ background: '#0c4a6e', color: '#38bdf8', borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>
+                        {hub.iata}
+                      </div>
+                      <span style={{ fontWeight: 600, color: '#94a3b8', fontSize: 14 }}>{hub.name}</span>
+                      <span style={{ fontSize: 12, color: '#475569', marginLeft: 'auto' }}>{hubRoutes.length} route{hubRoutes.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {hubRoutes.map(renderRoute)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {filtered.map(renderRoute)}
+          </div>
+        );
+      })()}
 
       {/* Route modal */}
       {(routeModal === 'add' || routeModal === 'edit') && (
