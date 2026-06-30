@@ -72,6 +72,7 @@ export default function Fleet() {
   const f = (field: keyof AcForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [field]: e.target.value || undefined }));
 
+  const isMobile = useIsMobile();
   const displayed = aircraft.filter((a) => {
     if (filterHub && a.hubId !== filterHub) return false;
     if (filterStatus && a.status !== filterStatus) return false;
