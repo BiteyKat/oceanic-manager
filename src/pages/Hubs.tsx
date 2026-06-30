@@ -48,6 +48,7 @@ export default function Hubs() {
     setGateModal(null);
   };
 
+  const isMobile = useIsMobile();
   const f = (field: keyof HubForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
