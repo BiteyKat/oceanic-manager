@@ -163,6 +163,7 @@ export default function Fleet() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
